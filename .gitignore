@@ -2,7 +2,10 @@
 __pycache__/
 *.py[codz]
 *$py.class
-
+.claude/
+*.zip
+*.pdf
+*.blg
 # C extensions
 *.so
 
