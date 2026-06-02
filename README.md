@@ -54,4 +54,3 @@ rafael.lucas@posgraduacao.uerj.br
 **Victor Hugo Nascimento**
 School of Applied Mathematics, FGV
 Praia de Botafogo, Rio de Janeiro, Brazil
-victorhugo.vhrn@gmail.com
