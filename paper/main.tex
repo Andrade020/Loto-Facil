@@ -1,0 +1,176 @@
+%% main.tex
+%% "Coverage Maximization and Overlap Minimization for Multi-Ticket Lottery Selection"
+%% Target: Electronic Journal of Combinatorics (EJC) — open access, free to publish
+%%
+%% Compile: pdflatex main && bibtex main && pdflatex main && pdflatex main
+
+\documentclass[12pt]{article}
+
+%% ── Encoding & fonts ──────────────────────────────────────────────────────────
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+%% ── Page geometry ─────────────────────────────────────────────────────────────
+\usepackage[top=1.25in, bottom=1.25in, left=1.25in, right=1.25in]{geometry}
+\setlength{\parskip}{4pt}
+\linespread{1.08}
+
+%% ── Mathematics ───────────────────────────────────────────────────────────────
+\usepackage{amsmath, amsthm, amssymb, mathtools}
+
+%% ── Theorem environments ──────────────────────────────────────────────────────
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{conjecture}[theorem]{Conjecture}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{remark}[theorem]{Remark}
+
+%% ── Algorithms ────────────────────────────────────────────────────────────────
+\usepackage[ruled, linesnumbered, vlined]{algorithm2e}
+\SetKwInput{KwInput}{Input}
+\SetKwInput{KwOutput}{Output}
+
+%% ── Tables & figures ──────────────────────────────────────────────────────────
+\usepackage{bm}        % bold math symbols (\bm)
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{float}
+
+%% ── Hyperlinks ────────────────────────────────────────────────────────────────
+\usepackage[colorlinks=true, linkcolor=blue!60!black,
+            citecolor=green!50!black, urlcolor=blue!70!black]{hyperref}
+
+%% ── Bibliography ──────────────────────────────────────────────────────────────
+\usepackage[numbers, sort&compress]{natbib}
+\bibliographystyle{plainnat}
+
+%% ── Custom macros ─────────────────────────────────────────────────────────────
+% Universe, ticket size, prize threshold
+\newcommand{\vv}{v}          % universe size
+\newcommand{\kk}{k}          % ticket (block) size
+% NOTE: \tt is reserved by LaTeX; use \tthresh for prize threshold
+\newcommand{\tthresh}{t}     % prize threshold (hits required)
+\newcommand{\nn}{n}          % number of tickets
+
+% Key probability
+\newcommand{\pone}{p(\vv,\kk,\tthresh)}   % single-ticket prize probability
+\newcommand{\Pwin}{P_{\mathrm{win}}}  % P(at least one ticket wins)
+
+% Covering number
+\newcommand{\Cvkt}{C(\vv,\kk,\tthresh)}
+
+% Hypergeometric distribution
+\newcommand{\Hyp}[3]{\mathrm{Hyp}(#1,#2,#3)}
+
+% Sets
+\newcommand{\calA}{\mathcal{A}}   % ticket collection
+\newcommand{\bbN}{\mathbb{N}}
+\newcommand{\bbR}{\mathbb{R}}
+
+% Shorthand for indicator
+\newcommand{\ind}[1]{\mathbf{1}\!\left[#1\right]}
+
+% Overlap
+\newcommand{\overlap}[2]{|#1 \cap #2|}
+% NOTE: \binom is already defined by amsmath — use it directly
+
+%% ── Spacing tweaks ────────────────────────────────────────────────────────────
+\renewcommand{\floatpagefraction}{0.8}
+\renewcommand{\topfraction}{0.9}
+
+%% ═══════════════════════════════════════════════════════════════════════════════
+\begin{document}
+%% ═══════════════════════════════════════════════════════════════════════════════
+
+%% ── Title block ───────────────────────────────────────────────────────────────
+\title{%
+  Coverage Maximization and Overlap Minimization\\
+  for Multi-Ticket Lottery Selection:\\
+  Theory, Algorithms, and Empirical Validation
+}
+
+\author{%
+  Lucas Rafael de Andrade\\[2pt]
+  \small \textit{UERJ -- Programa de P\'{o}s-Gradua\c{c}\~{a}o em
+    Ci\^{e}ncias Econ\^{o}micas (PPGCE)}\\
+  \small \texttt{rafael.lucas@posgraduacao.uerj.br}
+  \and
+  Victor Hugo Nascimento\\[2pt]
+  \small \textit{School of Applied Mathematics, FGV}\\
+  \small Praia de Botafogo, Rio de Janeiro, Brazil\\
+  \small \texttt{victorhugo.vhrn@gmail.com}
+}
+
+\date{\today}
+
+\maketitle
+
+%% ── Abstract ──────────────────────────────────────────────────────────────────
+\begin{abstract}
+We study the problem of selecting $n$ tickets in a $(v,k)$-lottery, where
+each ticket is a $k$-subset of a universe $[v]$, a draw is a uniformly
+random $k$-subset, and a prize is awarded for at least $t$ matches.  The
+goal is to choose the collection of $n$ tickets that maximises the probability
+that at least one ticket wins.
+
+The classical combinatorial literature addresses a deterministic version of
+this question, seeking ticket systems that guarantee a minimum number of
+matches for every possible draw.  We take a probabilistic route instead and
+show that, for two tickets, the probability of at least one win is a
+non-increasing function of the pairwise overlap $|A_1 \cap A_2|$.  A
+consequence, proved by exact enumeration for the Lotof\'{a}cil parameters
+$(v=25, k=15, t=11)$, is that tickets with overlap at most six have mutually
+exclusive winning events, so the joint prize probability reaches its maximum
+value of $2p$ exactly.  For general $n \ge 2$ we conjecture the same
+monotonicity, supported by simulation, and show that greedy coverage selection
+followed by a simulated annealing refinement produces collections with
+near-minimum pairwise overlap.  The greedy stage inherits the
+$(1-1/e)$-approximation guarantee of \citet{Nemhauser1978}.
+
+We apply both algorithms to the Lotof\'{a}cil, the first academic study of
+this Brazilian lottery.  Using a paired Monte Carlo design with $50{,}000$
+shared draws per condition, we estimate the joint prize probability for
+$n = 1, 2, 3, 5, 7, 10, 15, 20, 25, 30, 40, 50, 75$, and~$100$ tickets.
+The optimised strategy yields gains of up to 11 percentage points over
+random selection at $n = 5$ (Cohen's $d = 2.64$, $p < 10^{-23}$), with
+statistically significant advantages at every $n \ge 2$ up to the saturation
+point near $n = 50$, beyond which both strategies achieve $P \ge 0.996$.
+\end{abstract}
+
+\vspace{4pt}
+\noindent\emph{Keywords:} lottery design, covering design, set cover,
+greedy algorithm, simulated annealing, hypergeometric distribution, pairwise
+overlap, Lotof\'{a}cil.
+
+\vspace{4pt}
+\noindent\emph{MSC 2020:} 05B40 (Covering designs); 68W25 (Approximation
+algorithms); 60C05 (Combinatorial probability).
+
+\bigskip
+\hrule
+\bigskip
+
+%% ── Sections (each in its own file) ──────────────────────────────────────────
+\input{sec1_intro}
+\input{sec2_framework}
+\input{sec3_theory}
+\input{sec4_algorithms}
+\input{sec5_empirical}
+\input{sec6_stats}
+\input{sec7_discussion}
+
+%% ── Bibliography ──────────────────────────────────────────────────────────────
+\bibliography{refs}
+
+\end{document}

@@ -1,0 +1,195 @@
+%% sec4_algorithms.tex -- Section 4: Algorithms
+
+\section{Algorithms}
+\label{sec:algorithms}
+
+We describe two procedures for constructing a multi-ticket collection with
+small total pairwise overlap.  The first builds the collection greedily by
+maximising coverage; the second refines the greedy output via simulated
+annealing.
+
+\subsection{Greedy Coverage Selection}
+\label{sec:algo-greedy}
+
+The maximum coverage problem asks: given a universe $U$, a family
+$\mathcal{F}$ of subsets of $U$, and a budget $n$, choose $n$ sets from
+$\mathcal{F}$ to maximise $|\bigcup_{i=1}^{n} A_i|$.  \citet{Nemhauser1978}
+proved that the greedy algorithm, which at each step adds the set with the
+largest marginal coverage gain, achieves a $(1-1/e)$-approximation.
+\citet{Feige1998} showed this ratio is tight under standard complexity
+assumptions.
+
+Algorithm~\ref{alg:greedy} instantiates this paradigm with $U = [v]$ and
+$\mathcal{F} = \binom{[v]}{k}$.  Maximising coverage of $[v]$ by the selected
+tickets minimises the number of elements counted more than once, which
+corresponds to minimising $\Omega(\mathcal{A})$.  A tie-breaking rule based
+on cumulative overlap makes the secondary objective explicit.
+
+\begin{algorithm}[H]
+  \caption{Greedy Coverage Selection}
+  \label{alg:greedy}
+  \KwInput{Universe size $v$, ticket size $k$, number of tickets $n$,
+           candidate pool $\mathcal{P} \subseteq \binom{[v]}{k}$
+           of size $M \gg n$.}
+  \KwOutput{Collection $\mathcal{A} = (A_1, \ldots, A_n)$ with small
+            total overlap $\Omega(\mathcal{A})$.}
+  \BlankLine
+  $\mathrm{covered} \leftarrow \emptyset$\;
+  $\mathrm{cumOv}[A] \leftarrow 0$ for all $A \in \mathcal{P}$\;
+  $\mathcal{A} \leftarrow ()$\;
+  \BlankLine
+  \For{$\ell = 1$ \KwTo $n$}{
+    $\mathrm{gain}[A] \leftarrow |A \setminus \mathrm{covered}|$
+    for all available $A \in \mathcal{P}$\;
+    \BlankLine
+    $\mathrm{score}[A] \leftarrow
+      (L+1) \cdot \mathrm{gain}[A] - \mathrm{cumOv}[A]$
+    \tcp*[r]{$L = n \cdot k$: ensures gain dominates overlap}
+    \BlankLine
+    $A^* \leftarrow \arg\max_{A \in \mathcal{P} \setminus \mathcal{A}}
+      \mathrm{score}[A]$\;
+    \BlankLine
+    Append $A^*$ to $\mathcal{A}$\;
+    $\mathrm{covered} \leftarrow \mathrm{covered} \cup A^*$\;
+    $\mathrm{cumOv}[A] \leftarrow \mathrm{cumOv}[A] + |A \cap A^*|$
+    for all $A \in \mathcal{P}$\;
+  }
+  \Return $\mathcal{A}$\;
+\end{algorithm}
+
+\begin{remark}[Scoring rule]
+  The multiplier $L+1 = nk+1$ in Algorithm~\ref{alg:greedy} guarantees that
+  any non-zero coverage gain makes a ticket strictly preferred over any ticket
+  with smaller gain, regardless of overlap.  Formally, if $\mathrm{gain}[A]
+  > \mathrm{gain}[B]$, then $\mathrm{score}[A] > \mathrm{score}[B]$ for
+  any values of $\mathrm{cumOv}$ bounded above by $Lk$ (since
+  $\mathrm{gain}$ takes integer values in $[0, v]$, one unit of gain is
+  worth $(L+1) > Lk$ tie-breaker units).  Overlap is therefore a
+  \emph{secondary} objective, used only when coverage gains are equal.
+\end{remark}
+
+\begin{theorem}[Approximation guarantee]
+  \label{thm:greedy-guarantee}
+  Let $\mathrm{OPT}_n = \max_{\mathcal{A}: |\mathcal{A}|=n}
+  |\bigcup_{A \in \mathcal{A}} A|$ be the maximum coverage achievable with
+  $n$ tickets chosen from the full family $\binom{[v]}{k}$.
+  Algorithm~\ref{alg:greedy} run on the full family (i.e., $M =
+  \binom{v}{k}$) produces $\mathcal{A}$ with
+  \[
+    \left|\bigcup_{A \in \mathcal{A}} A\right|
+    \;\ge\; \left(1 - e^{-1}\right) \cdot \mathrm{OPT}_n
+    \;\approx\; 0.632 \cdot \mathrm{OPT}_n.
+  \]
+\end{theorem}
+
+\begin{proof}
+  The family $\binom{[v]}{k}$ constitutes a set system on the ground set
+  $[v]$, and Algorithm~\ref{alg:greedy} is exactly the greedy algorithm for
+  the maximum-coverage problem on this system (with $|\mathcal{A}| = n$ as
+  the cardinality constraint).  The $(1-1/e)$ bound follows from Theorem~2
+  of Nemhauser et al.\ \cite{Nemhauser1978}, which applies to any monotone
+  submodular function; coverage is the canonical example.
+\end{proof}
+
+\begin{remark}[Practical pool size]
+  Running Algorithm~\ref{alg:greedy} on the full family $\binom{[v]}{k}$
+  is infeasible for large parameters (e.g., $\binom{25}{15} =
+  3{,}268{,}760$ for the Lotofácil).  In practice we draw a random pool
+  $\mathcal{P}$ of size $M = \max(500, 20n)$ and run the algorithm on
+  $\mathcal{P}$.  The approximation guarantee no longer applies rigorously,
+  but empirical evidence (Section~\ref{sec:empirical}) shows the resulting
+  collections are near-optimal.  For the regime $v=25$, $k=15$, the greedy
+  construction typically achieves full coverage of $[25]$ after just
+  $\lceil v/k^* \rceil = 2$ tickets (where $k^* = k - m^* = 10$ is the
+  number of unique elements per ticket), so coverage saturates rapidly and
+  the tie-breaking overlap rule dominates for $n \ge 2$.
+\end{remark}
+
+\subsection{Simulated Annealing Refinement}
+\label{sec:algo-sa}
+
+The greedy solution is not guaranteed to minimise $\Omega(\mathcal{A})$
+globally, since each greedy step is locally optimal.  We apply Simulated
+Annealing (SA) \cite{Kirkpatrick1983} to refine the greedy solution by
+minimising the total pairwise overlap objective
+\[
+  \Omega(\mathcal{A}) = \sum_{1 \le i < j \le n} |A_i \cap A_j|.
+\]
+
+\begin{algorithm}[H]
+  \caption{Simulated Annealing for Overlap Minimisation}
+  \label{alg:sa}
+  \KwInput{Initial collection $\mathcal{A}^{(0)}$ (greedy output),
+           iteration count $N_\text{iter}$,
+           initial temperature $T_0$, cooling factor $\alpha \in (0,1)$.}
+  \KwOutput{Refined collection $\mathcal{A}^*$ with $\Omega(\mathcal{A}^*)
+            \le \Omega(\mathcal{A}^{(0)})$ (with high probability).}
+  \BlankLine
+  $\mathcal{A} \leftarrow \mathcal{A}^{(0)}$;
+  $\mathcal{A}^* \leftarrow \mathcal{A}$;
+  $T \leftarrow T_0$\;
+  Compute $\bm{b}[A_i] \in \{0,1\}^v$ (indicator vector) for each $A_i$\;
+  \BlankLine
+  \For{$s = 1$ \KwTo $N_\text{iter}$}{
+    Choose $i \in [n]$ and $j \in [k]$ uniformly at random\;
+    Choose $x \in [v] \setminus A_i$ uniformly at random\;
+    $A_i' \leftarrow (A_i \setminus \{A_i[j]\}) \cup \{x\}$\;
+    \BlankLine
+    $\delta \leftarrow
+      \sum_{\ell \ne i} |A_\ell \cap A_i'|
+      - \sum_{\ell \ne i} |A_\ell \cap A_i|$
+    \tcp*[r]{Efficient $O(nv)$ delta via indicator vectors}
+    \BlankLine
+    \If{$\delta < 0$ \textbf{or} $\mathrm{Uniform}(0,1) < e^{-\delta/T}$}{
+      $A_i \leftarrow A_i'$;
+      update $\bm{b}[A_i]$;
+      $\Omega \leftarrow \Omega + \delta$\;
+      \If{$\Omega < \Omega(\mathcal{A}^*)$}{
+        $\mathcal{A}^* \leftarrow \mathcal{A}$\;
+      }
+    }
+    $T \leftarrow \alpha \cdot T$\;
+  }
+  \Return $\mathcal{A}^*$\;
+\end{algorithm}
+
+\begin{remark}[Efficient delta computation]
+  \label{rem:efficient-delta}
+  The overlap increment $\delta$ in Algorithm~\ref{alg:sa} is computed in
+  $O(nv)$ time using boolean indicator vectors $\bm{b}[A_i] \in \{0,1\}^v$,
+  maintained incrementally: $\sum_{\ell \ne i} |A_\ell \cap A_i'| =
+  \sum_{\ell \ne i} \langle \bm{b}[A_\ell], \bm{b}[A_i']\rangle$.
+  Only the row corresponding to the modified ticket needs updating,
+  reducing the per-iteration cost from $O(n^2 v)$ to $O(nv)$.
+  Incremental evaluation of this kind is standard practice in local-search
+  implementations; see \citet{Talbi2009}, Section~2.1.4.
+\end{remark}
+
+\subsection{Complexity analysis}
+\label{sec:algo-complexity}
+
+\begin{proposition}[Algorithm complexities]
+  \label{prop:complexity}
+  With pool size $M = O(nk)$ and $N_\mathrm{iter}$ SA iterations,
+  pool generation costs $O(Mv\log v)$, greedy selection costs
+  $O(n \cdot M \cdot v)$ \citep{Johnson1974}, and each SA run costs
+  $O(N_\mathrm{iter} \cdot n \cdot v)$ (Remark~\ref{rem:efficient-delta}).
+  For the Lotof\'{a}cil with $v=25$, $k=15$, $n \le 100$, $M=500$,
+  $N_\mathrm{iter}=2000$, the total cost per run is $O(10^6)$ operations,
+  completing in under one second on modern hardware.
+  The complexity is linear in $n$ and constant in $v$ for fixed $v=25$,
+  so the algorithms scale without difficulty to large budgets.
+\end{proposition}
+
+\begin{remark}[NP-hardness does not apply here]
+  The maximum-coverage problem on a general set system is NP-hard
+  \cite{Feige1998}.  For our specific structure, however, the universe has
+  fixed size $v=25$, so exhaustive enumeration over $\binom{v}{k}^n$ is
+  polynomial in $n$ for fixed $v$.
+  The greedy approximation is used for speed, not necessity.  In the
+  Lotofácil instance, the greedy solution is very close to optimal:
+  full coverage of $[25]$ is achievable with $n = 2$ tickets (since
+  $2 \times (k - m^*) = 2 \times 10 = 20 > v - k = 10$), so for $n \ge 2$
+  the greedy always achieves $|\bigcup A_i| = v = 25$, and the SA's role
+  is purely to minimise $\Omega$ within the set of maximum-coverage solutions.
+\end{remark}

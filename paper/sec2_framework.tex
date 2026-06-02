@@ -1,0 +1,141 @@
+%% sec2_framework.tex -- Section 2: Mathematical Framework
+
+\section{Mathematical Framework}
+\label{sec:framework}
+
+Throughout the paper, $[v] = \{1,2,\ldots,v\}$ denotes the universe of size
+$v \ge 1$, and $\binom{[v]}{k}$ the family of all $k$-element subsets of
+$[v]$.  For a set $S$ we write $|S|$ for its cardinality.
+
+\begin{definition}[$(v,k)$-lottery]
+  A \emph{$(v,k)$-lottery} is parameterised by integers $1 \le k \le v$.
+  A \emph{ticket} is a set $A \in \binom{[v]}{k}$.  The \emph{draw} $R$
+  is a uniformly random element of $\binom{[v]}{k}$, independent of all
+  other randomness.
+\end{definition}
+
+\begin{definition}[Prize event and prize probability]
+  \label{def:prize}
+  Let $t$ be an integer with $1 \le t \le k$ (the \emph{prize threshold}).
+  A ticket $A$ \emph{wins a prize} when $|A \cap R| \ge t$.  The
+  \emph{single-ticket prize probability} is
+  \begin{equation}
+    \label{eq:pone}
+    p(v,k,t)
+    = P(|A \cap R| \ge t)
+    = \sum_{j=t}^{k}
+      \frac{\binom{k}{j}\binom{v-k}{k-j}}{\binom{v}{k}}.
+  \end{equation}
+  By symmetry of the uniform draw, $p(v,k,t)$ depends only on $v$, $k$, $t$
+  and not on the specific elements of $A$.
+\end{definition}
+
+The formula in \eqref{eq:pone} is the survival function of the Hypergeometric
+distribution $\mathrm{Hyp}(v,k,k)$ at $t-1$, which counts the number of
+elements in common between the ticket and the draw when both are $k$-subsets
+of $[v]$.
+
+\begin{definition}[Multi-ticket collection and joint prize probability]
+  A \emph{multi-ticket collection} is a tuple $\mathcal{A} = (A_1,\ldots,A_n)$
+  of tickets.  Its \emph{joint prize probability} is
+  \begin{equation}
+    \label{eq:Pwin}
+    P_{\mathrm{win}}(\mathcal{A})
+    = P\!\left(\,\bigcup_{i=1}^{n} \{|A_i \cap R| \ge t\}\right)
+    = 1 - P\!\left(\,\bigcap_{i=1}^{n} \{|A_i \cap R| < t\}\right).
+  \end{equation}
+  The optimisation problem studied here is to maximise
+  $P_{\mathrm{win}}(\mathcal{A})$ over all $\mathcal{A} \in \binom{[v]}{k}^n$.
+\end{definition}
+
+For two tickets $A_i$ and $A_j$ we call $m_{ij} = |A_i \cap A_j|$ their
+\emph{pairwise overlap}, and define the \emph{total overlap} of a collection
+as $\Omega(\mathcal{A}) = \sum_{i < j} |A_i \cap A_j|$.
+
+\begin{remark}[Minimum overlap constraint]
+  \label{rem:min-overlap}
+  For any two $k$-subsets of $[v]$, the identity $|A_1 \cup A_2| = 2k -
+  |A_1 \cap A_2| \le v$ gives $|A_1 \cap A_2| \ge \max(0, 2k-v) =: m^*$.
+  For the Lotof\'{a}cil parameters $(v=25, k=15)$ this yields $m^* = 5$:
+  every pair of tickets shares at least five numbers, a hard constraint
+  that no strategy can eliminate.
+\end{remark}
+
+The connection to the classical literature runs through covering numbers.
+
+\begin{definition}[Covering number and lotto design]
+  \label{def:covering}
+  The \emph{covering number} $C(v,k,t)$ is the minimum number of $k$-subsets
+  of $[v]$ such that every $t$-subset of $[v]$ is contained in at least one
+  block.  The Sch\"{o}nheim lower bound \cite{Schoenheim1964} states
+  \begin{equation}
+    \label{eq:schoenheim}
+    C(v,k,t)
+    \ge \left\lceil \frac{v}{k}
+        \left\lceil \frac{v-1}{k-1}
+        \cdots
+        \left\lceil \frac{v-t+1}{k-t+1}
+        \right\rceil \cdots \right\rceil \right\rceil.
+  \end{equation}
+  A \emph{$(v,k,t,m)$-lotto design} \cite{Li2002} guarantees that every draw
+  $R$ satisfies $|A_i \cap R| \ge m$ for at least one $A_i$.
+\end{definition}
+
+A $(v,k,t,m)$-lotto design achieves $P_{\mathrm{win}} = 1$, but may require
+many tickets.  The probabilistic objective we study is relevant precisely when
+the budget $n$ falls below the minimum number of tickets needed for a
+deterministic guarantee, which is the typical situation for individual players.
+
+Two objects play a central role in the analysis.  First, the canonical
+four-part partition of $[v]$ associated with a pair of tickets.
+
+\begin{definition}[Canonical partition]
+  \label{def:partition}
+  Let $A_1, A_2 \in \binom{[v]}{k}$ with $|A_1 \cap A_2| = m$.  Partition
+  $[v]$ into four disjoint parts:
+  \[
+    S_0 = A_1 \cap A_2, \quad
+    S_1 = A_1 \setminus A_2, \quad
+    S_2 = A_2 \setminus A_1, \quad
+    S_3 = [v] \setminus (A_1 \cup A_2),
+  \]
+  with sizes $|S_0|=m$, $|S_1|=|S_2|=k-m$, $|S_3|=v-2k+m$.  Let
+  $(X_0, X_1, X_2, X_3)$ denote the number of draw elements in each part.
+  By construction, $X_0+X_1+X_2+X_3 = k$ and
+  \begin{equation}
+    \label{eq:scores-partition}
+    |A_1 \cap R| = X_0 + X_1, \qquad |A_2 \cap R| = X_0 + X_2.
+  \end{equation}
+  The vector $(X_0,X_1,X_2,X_3)$ follows the Multivariate Hypergeometric
+  distribution with parameters $(m, k-m, k-m, v-2k+m)$ and sample size $k$.
+\end{definition}
+
+Second, the covariance between the two ticket scores has a closed form.
+Standard multivariate hypergeometric formulas give
+\begin{equation}
+  \label{eq:cov}
+  \mathrm{Cov}(|A_1 \cap R|,\, |A_2 \cap R|)
+  = \frac{k(v-k)}{v^2(v-1)}\,(mv - k^2).
+\end{equation}
+This covariance is negative when $m < k^2/v$, zero at $m = k^2/v$, and
+positive for larger $m$.  For the Lotof\'{a}cil, the inflection point is at
+$m = 225/25 = 9$.  Since $m^* = 5$, two tickets at minimum overlap have
+negatively correlated scores ($\mathrm{Cov} = -1.0$), which is precisely the
+regime most favourable for $P_{\mathrm{win}}$.
+
+For reference throughout the paper we also define the \emph{independence upper
+bound} $U_n = 1-(1-p(v,k,t))^n$, the value $P_{\mathrm{win}}$ would take if
+the $n$ winning events were mutually independent.  For $v < 2k$ this bound
+is never attained; the gap to $U_n$ measures the cost of forced overlap.
+
+Finally, instantiating \eqref{eq:pone} for the Lotof\'{a}cil gives
+\begin{equation}
+  \label{eq:pone-lotofacil}
+  p(25,15,11)
+  = \frac{1}{\binom{25}{15}}
+    \sum_{j=11}^{15}
+    \binom{15}{j}\binom{10}{15-j}
+  = \frac{346{,}126}{3{,}268{,}760}
+  \approx 0.10589,
+\end{equation}
+and the independence upper bound is $U_n = 1-(0.89411)^n$.

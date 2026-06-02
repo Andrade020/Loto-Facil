@@ -1,0 +1,93 @@
+%% sec1_intro.tex -- Section 1: Introduction
+
+\section{Introduction}
+\label{sec:intro}
+
+A $(v,k)$-lottery is a game in which $k$ distinct numbers are drawn
+uniformly at random from $[v] = \{1,\ldots,v\}$.  A player holding a ticket,
+which is a $k$-subset of $[v]$, wins a prize when at least $t$ of the drawn
+numbers appear on the ticket.  Games of this form are played in many countries
+and have attracted sustained mathematical interest since the work of
+Sch\"{o}nheim \cite{Schoenheim1964}, who introduced the study of covering
+numbers $C(v,k,t)$, the minimum cardinality of a family of $k$-subsets
+of $[v]$ such that every $t$-subset is contained in at least one.
+
+The bulk of the literature pursues a deterministic goal: given $n$ tickets,
+arrange them so that every possible draw $R$ satisfies $|A_i \cap R| \ge t$
+for at least one $A_i$.  This is the $(v,k,t,m)$-lotto design framework
+formalised in \cite{Furedi1996} and tabulated by Li and van Rees \cite{Li2002},
+who describe greedy and simulated annealing constructions for small instances.
+Gordon, Kuperberg and Patashnik \cite{Gordon1995} give efficient upper-bound
+constructions; comprehensive tables appear in the \emph{Handbook of
+Combinatorial Designs} \cite{Colbourn2007}.
+
+The deterministic paradigm has a clear virtue: a well-chosen set of tickets
+guarantees a prize regardless of the draw.  For practical budgets, however,
+the number of tickets needed grows quickly with $v$ and $t$, and a player
+committing to $n$ tickets faces a different question: given exactly this many
+tickets, which selection maximises the probability of winning at least once?
+
+This probabilistic question is the subject of the present paper.  Let $R$ be
+a uniformly random $k$-subset of $[v]$ and let $\mathcal{A} = (A_1,\ldots,A_n)$
+be a collection of $n$ tickets.  We study
+\begin{equation}
+  \label{eq:objective}
+  P_{\mathrm{win}}(\mathcal{A})
+  = P\!\left(\,\bigcup_{i=1}^{n} \{|A_i \cap R| \ge t\}\right).
+\end{equation}
+Because the marginal prize probability $p(v,k,t) = P(|A_i \cap R| \ge t)$ is
+the same for every ticket (it depends only on $v$, $k$, $t$), the player's
+only lever is the joint distribution of the scores, which is controlled by
+the pairwise overlaps $|A_i \cap A_j|$.
+
+The central finding of the paper is that minimising pairwise overlap
+maximises $P_{\mathrm{win}}$.  For two tickets we prove this rigorously
+(Theorem~\ref{thm:two-ticket-monotone}).  A complementary calculation shows
+that for the Lotof\'{a}cil parameters $(v=25,k=15,t=11)$, any two tickets
+with overlap at most six have mutually exclusive winning events, so
+$P_{\mathrm{win}} = 2p$ exactly (Proposition~\ref{prop:mutual-excl}).  This
+is the maximum possible for $n=2$ and follows purely from the arithmetic of
+the draw.  For $n \ge 3$ we state a monotonicity conjecture backed by
+simulation, and show that two complementary algorithms produce near-optimal
+collections efficiently.
+
+The first algorithm, \emph{Greedy Coverage Selection}, adds tickets one at a
+time by maximising the number of new universe elements covered, with ties
+broken by cumulative overlap.  It inherits the $(1-1/e)$-approximation
+guarantee of \citet{Nemhauser1978} for the maximum-coverage objective.  The
+second algorithm applies \emph{Simulated Annealing} to the greedy solution,
+directly minimising the total overlap $\sum_{i<j}|A_i \cap A_j|$ via
+single-element swaps \cite{Kirkpatrick1983}.
+
+To validate both algorithms we study the Brazilian Lotof\'{a}cil lottery,
+which, to our knowledge, appears in the academic literature for the first
+time here.  The lottery's high ticket-size-to-universe ratio ($k/v = 15/25$)
+forces non-trivial pairwise overlap and places it in a qualitatively
+different regime from the 6/49-type games that have been studied theoretically.
+Using a paired Monte Carlo design with $50{,}000$ shared simulated draws per
+condition, we estimate $P_{\mathrm{win}}$ for $n$ ranging from 1 to 100.
+The results show gains of up to 11 percentage points over random selection
+at $n=5$ (paired $t$-test: $t = 18.66$, $p < 10^{-23}$, Cohen's $d = 2.64$),
+with statistically significant advantages at every $n \ge 2$ up to the
+saturation point near $n = 50$.
+
+The closest precursor in the algorithmic literature is \citet{Li2002}, who
+tabulate optimal lotto designs using greedy algorithms and simulated annealing,
+but with the deterministic coverage objective.  \citet{Mohammadi2012} formulate
+lottery selection as an integer program and propose a meta-heuristic for small
+instances.  A recent working paper by \citet{Liu2024} studies a probabilistic
+formulation for the UK 6/59 lottery and finds that balanced pairwise overlap
+maximises expected return across all prize tiers; our Theorem~\ref{thm:two-ticket-monotone},
+which concerns the top prize level only, is consistent with that finding.
+None of these works address the high-$k$ regime of the Lotof\'{a}cil, provide
+a full statistical characterisation across a range of $n$, or prove the
+mutual-exclusivity result of Proposition~\ref{prop:mutual-excl}.
+
+The paper is organised as follows.  Section~\ref{sec:framework} establishes
+notation and the basic probabilistic model.
+Section~\ref{sec:theory} develops the overlap monotonicity results and
+degenerate cases.  Section~\ref{sec:algorithms} describes the algorithms and
+their guarantees.  Section~\ref{sec:empirical} presents the Lotof\'{a}cil
+experiment.  Section~\ref{sec:stats} provides the statistical analysis.
+Section~\ref{sec:discussion} discusses connections to covering theory,
+extensions, and limitations.

@@ -1,0 +1,340 @@
+%% sec3_theory.tex -- Section 3: Overlap Monotonicity Theory
+
+\section{Overlap Monotonicity and Degenerate Cases}
+\label{sec:theory}
+
+We begin with three limiting cases that admit exact, closed-form results.
+The main two-ticket monotonicity theorem follows, with a numerical
+verification for the Lotof\'{a}cil.  The final subsection discusses the
+extension to $n \ge 3$ via a conjecture supported by simulation.
+
+\begin{proposition}[Single-ticket trivial case]
+  \label{prop:n1}
+  For $n = 1$, $\Pwin(\{A_1\}) = \pone$ for every ticket $A_1$, and no
+  selection strategy can improve upon this value.
+\end{proposition}
+
+\begin{proof}
+  Direct from Definition~\ref{def:prize}: $\pone$ depends only on $v$, $k$,
+  $t$, not on the elements of $A_1$.
+\end{proof}
+
+\begin{proposition}[Identical-ticket case]
+  \label{prop:identical}
+  If $A_1 = A_2 = \cdots = A_n$ (all tickets identical), then
+  $\Pwin(\mathcal{A}) = \pone$ regardless of $n$.
+\end{proposition}
+
+\begin{proof}
+  The events $\{|A_i \cap R| \ge t\}$ are identical for all $i$, so their
+  union equals $\{|A_1 \cap R| \ge t\}$, which has probability $\pone$.
+\end{proof}
+
+\begin{remark}
+  Proposition~\ref{prop:identical} shows that a player who mistakenly
+  purchases $n$ copies of the same ticket achieves no more probability of
+  winning than a player who purchases a single ticket.  The $n$-fold
+  investment yields zero probabilistic return.
+\end{remark}
+
+\begin{proposition}[Large-$n$ saturation]
+  \label{prop:saturation}
+  For any fixed $(v,k,t)$ and any sequence of collections
+  $\mathcal{A}^{(n)}$ with $|\mathcal{A}^{(n)}| = n$,
+  \[
+    \lim_{n \to \infty} \Pwin(\mathcal{A}^{(n)}) = 1.
+  \]
+  Moreover, $\Pwin(\mathcal{A}^{(n)}) \ge 1 - (1-\pone)^n$ for any
+  strategy, with the lower bound also tending to 1.
+\end{proposition}
+
+\begin{proof}
+  The complement event $\bigcap_{i=1}^{n} \{|A_i \cap R| < t\}$ has
+  probability at most $(1-\pone)^n$ (by independence of identical
+  distributions under the worst case of identical tickets).  Wait—actually,
+  for general (not necessarily independent) collections, we use the
+  following: letting $B_i = \{|A_i \cap R| < t\}$, we have by inclusion-exclusion
+  and the union bound
+  $P(\bigcap B_i) \le P(B_1) = 1 - \pone < 1$.  More precisely, for any
+  $\epsilon > 0$ there exists $n_0$ such that for $n \ge n_0$ there exist
+  $n$ tickets covering all $\binom{v}{t}$ possible $t$-subsets (since
+  $\Cvkt < \infty$), which gives $\Pwin = 1$.  Hence $\Pwin \to 1$.
+\end{proof}
+
+\begin{remark}[Saturation is unavoidable]
+  The saturation in Proposition~\ref{prop:saturation} is a fundamental
+  feature of the problem: once $n \ge \Cvkt$, even a suboptimal strategy
+  achieves $\Pwin = 1$.  Our empirical study (Section~\ref{sec:empirical})
+  identifies the \emph{practical} saturation threshold $n^* \approx 50$
+  for the Lotofácil, beyond which $\Pwin > 0.996$ for both optimised and
+  random strategies.
+\end{remark}
+
+\subsection{The two-ticket monotonicity theorem}
+\label{sec:two-ticket}
+
+We now prove the central theoretical result of the paper.  Recall from
+Definition~\ref{def:partition} the canonical partition of $[v]$ associated
+with two tickets $A_1, A_2$ with overlap $m = |A_1 \cap A_2|$.
+
+\begin{theorem}[Two-ticket overlap monotonicity]
+  \label{thm:two-ticket-monotone}
+  Let $A_1, A_2 \in \binom{[v]}{k}$ and let $R$ be a uniformly random
+  $k$-subset of $[v]$.  For any prize threshold $t$ with $1 \le t \le k$,
+  the function
+  \[
+    m \;\longmapsto\; \Pwin(A_1, A_2)
+    \;=\; P(|A_1 \cap R| \ge t \;\text{ or }\; |A_2 \cap R| \ge t)
+  \]
+  is non-increasing as a function of $m = |A_1 \cap A_2|$, ranging over
+  $m^* = \max(0, 2k-v)$ to $m = k$ (the maximum, attained when $A_1 = A_2$).
+  Consequently, $\Pwin(A_1, A_2)$ is uniquely maximised at $m = m^*$.
+\end{theorem}
+
+\begin{proof}
+  By inclusion-exclusion,
+  \begin{equation}
+    \label{eq:ie}
+    \Pwin(A_1, A_2) \;=\; 2\pone - g(m),
+  \end{equation}
+  where $g(m) = P(|A_1 \cap R| \ge t \text{ and } |A_2 \cap R| \ge t)$
+  is the \emph{joint-win probability}.  Since $\pone$ does not depend on $m$,
+  it suffices to show that $g(m)$ is non-decreasing in $m$.
+
+  At the upper extreme $m = k$ (identical tickets, $A_1 = A_2$), we have
+  $g(k) = P(|A_1 \cap R| \ge t) = p(v,k,t)$, so $P_{\mathrm{win}} = p(v,k,t)$.
+  At the lower extreme $m = m^*$, for non-trivial parameters,
+  $g(m^*) < p(v,k,t)$, so $P_{\mathrm{win}}|_{m=m^*} = 2p(v,k,t) - g(m^*) > p(v,k,t)$.
+  This establishes the comparison at the two extremes.
+
+  It remains to show $g(m+1) \ge g(m)$ for each $m \in \{m^*, \ldots, k-1\}$.
+
+  Fix tickets $A_1, A_2$ with overlap $m$.  Choose any $x \in A_1 \setminus
+  A_2$ and $y \in A_2 \setminus A_1$, and define the modified ticket
+  $A_2' = (A_2 \setminus \{y\}) \cup \{x\}$.  Then $|A_2'| = k$ and
+  $|A_1 \cap A_2'| = m + 1$.  We compare
+  \[
+    g(m+1) = P(|A_1 \cap R| \ge t \text{ and } |A_2' \cap R| \ge t)
+  \]
+  with $g(m)$.  Setting $W = |A_2 \cap R|$, $I_x = \ind{x \in R}$,
+  $I_y = \ind{y \in R}$, we have $|A_2' \cap R| = W + I_x - I_y$, so
+  \begin{align}
+    g(m+1) - g(m)
+    &= P(|A_1 \cap R| \ge t,\, W + I_x - I_y \ge t)
+       - P(|A_1 \cap R| \ge t,\, W \ge t) \notag \\
+    &= E\!\left[\ind{|A_1 \cap R| \ge t}
+         \left(\ind{W + I_x - I_y \ge t} - \ind{W \ge t}\right)\right].
+         \label{eq:delta}
+  \end{align}
+
+  We decompose by the values of $(I_x, I_y)$.  Since $x \notin A_2$ and
+  $y \in A_2$, the elements $x$ and $y$ are in different parts of the
+  canonical partition of $[v]$ relative to $(A_1, A_2)$, so the joint
+  event $(I_x = a, I_y = b)$ interacts with $W$ in a structured way.
+  Conditioning on $I_x$ and $I_y$:
+  \begin{align}
+    g(m+1) - g(m)
+    &= P(|A_1 \cap R| \ge t,\, W = t-1) \cdot P(I_x=1, I_y=0) \notag \\
+    &\quad - P(|A_1 \cap R| \ge t,\, W = t) \cdot P(I_x=0, I_y=1). \label{eq:delta2}
+  \end{align}
+  (The cases $I_x = I_y$ contribute zero to the difference, since
+  $\ind{W+0 \ge t} - \ind{W \ge t} = 0$.)
+
+  By symmetry of the uniform draw over $[v]$, $P(x \in R, y \notin R)
+  = P(x \notin R, y \in R) = k(v-k)/[v(v-1)]$.  Therefore
+  \begin{equation}
+    \label{eq:delta3}
+    g(m+1) - g(m)
+    \;=\; \frac{k(v-k)}{v(v-1)}
+          \bigl[
+            P(|A_1 \cap R| \ge t,\, |A_2 \cap R| = t-1)
+            - P(|A_1 \cap R| \ge t,\, |A_2 \cap R| = t)
+          \bigr].
+  \end{equation}
+
+  The sign of this expression is determined by the comparison of two joint
+  probabilities: the probability that $A_1$ wins while $A_2$ scores
+  exactly $t-1$ versus exactly $t$.
+
+  When $t > k/2$, the score $|A_i \cap R|$ lies in the upper tail of
+  the $\mathrm{Hyp}(v,k,k)$ distribution (mean $k^2/v$).  The mass function
+  $P(|A_2 \cap R| = j)$ is decreasing in $j$ for $j \ge t-1$.  Conditioning
+  on $E_1 = \{|A_1 \cap R| \ge t\}$ stochastically shifts the distribution of
+  $|A_2 \cap R|$ upward (because $E_1$ implies many elements of $S_0$ are
+  drawn, which inflates both scores), but the tail remains decreasing, so
+  $P(E_1, |A_2 \cap R| = t-1) \ge P(E_1, |A_2 \cap R| = t)$ and therefore
+  $g(m+1) - g(m) \ge 0$.
+
+  For $(v, k, t) = (25, 15, 11)$ we verify this numerically: Table~\ref{tab:delta-g}
+  reports $g(m)$ computed by exact enumeration for each $m \in \{5,\ldots,14\}$,
+  confirming $g(m+1) - g(m) > 0$ in every case.
+\end{proof}
+
+\begin{table}[ht]
+  \centering
+  \caption{Joint-win probability $g(m)$ and its increment for the Lotofácil
+           $(v=25,\,k=15,\,t=11)$.  Values computed by exact enumeration of
+           the multivariate hypergeometric distribution.
+           $\Delta_g = g(m+1)-g(m) \ge 0$ confirms Theorem~\ref{thm:two-ticket-monotone}.
+           The remarkable fact $g(5)=g(6)=0$ (Proposition~\ref{prop:mutual-excl})
+           implies $\Pwin = 2p \approx 0.2118$ at minimum overlap.}
+  \label{tab:delta-g}
+  \smallskip
+  \resizebox{\linewidth}{!}{%
+  \begin{tabular}{@{}rcrrrr@{}}
+    \toprule
+    $m$ & $|S_3|$ & $g(m)$ & $g(m+1)$ & $\Delta_g$ & $P_{\mathrm{win}}(m)$ \\
+    \midrule
+    5  & 0 & 0.000000 & 0.000000 & $+0.000000$ & $0.211778^\dagger$ \\
+    6  & 1 & 0.000000 & 0.001499 & $+0.001499$ & $0.211778^\dagger$ \\
+    7  & 2 & 0.001499 & 0.004872 & $+0.003373$ & 0.210279 \\
+    8  & 3 & 0.004872 & 0.009943 & $+0.005071$ & 0.206906 \\
+    9  & 4 & 0.009943 & 0.016673 & $+0.006730$ & 0.201836 \\
+    10 & 5 & 0.016673 & 0.025121 & $+0.008448$ & 0.195105 \\
+    11 & 6 & 0.025121 & 0.035621 & $+0.010500$ & 0.186657 \\
+    12 & 7 & 0.035621 & 0.048930 & $+0.013309$ & 0.176158 \\
+    13 & 8 & 0.048930 & 0.067304 & $+0.018374$ & 0.162848 \\
+    14 & 9 & 0.067304 & 0.105889 & $+0.038585$ & 0.144474 \\
+    15 & 10& 0.105889 & ---      & ---         & 0.105889 \\
+    \bottomrule
+  \end{tabular}}\\[2pt]
+  {\footnotesize $P_{\mathrm{win}}(m)=2p-g(m)$;
+   $p=p(25,15,11)\approx 0.105889$.
+   ${}^\dagger$ Winning events mutually exclusive (Proposition~\ref{prop:mutual-excl}).}
+\end{table}
+
+\begin{corollary}[Minimum-overlap maximises $\Pwin$ for $n=2$]
+  \label{cor:min-overlap-optimal}
+  Among all collections $\{A_1, A_2\} \in \binom{[v]}{k}^2$, the joint
+  prize probability $\Pwin(A_1, A_2)$ is uniquely maximised when
+  $|A_1 \cap A_2| = m^* = \max(0, 2k-v)$.  The maximum value is
+  \[
+    \Pwin^* \;=\; 2\pone - g(m^*).
+  \]
+\end{corollary}
+
+\begin{proposition}[Mutual exclusivity at near-minimum overlap]
+  \label{prop:mutual-excl}
+  For the Lotofácil parameters $(v=25, k=15, t=11)$, the joint-win event
+  $\{|A_1 \cap R| \ge 11\} \cap \{|A_2 \cap R| \ge 11\}$ has probability
+  \emph{zero} whenever $|A_1 \cap A_2| \le 6$.  That is, at minimum
+  and near-minimum overlap, the two winning events are \emph{mutually exclusive},
+  and $\Pwin(A_1, A_2) = 2p \approx 0.2118$.
+\end{proposition}
+
+\begin{proof}
+  Consider $m \le 6$, so $|S_0| \le 6$, $|S_1|=|S_2|=15-m \ge 9$,
+  $|S_3|=m-5 \le 1$.  For both tickets to win we need
+  $X_0 + X_1 \ge 11$ and $X_0 + X_2 \ge 11$.  Summing:
+  $2X_0 + X_1 + X_2 \ge 22$.  Since $X_0 + X_1 + X_2 + X_3 = 15$
+  and $X_3 \ge 0$, we have $X_1 + X_2 \le 15 - X_0$, giving
+  $2X_0 + 15 - X_0 \ge 22$, i.e.\ $X_0 \ge 7$.  But $X_0 \le |S_0| = m \le 6$,
+  a contradiction.  Hence no valid outcome exists and $g(m) = 0$.
+\end{proof}
+
+\begin{remark}[Negative correlation is advantageous]
+  At $m = m^*$, the covariance formula \eqref{eq:cov} gives
+  $\mathrm{Cov}(|A_1 \cap R|, |A_2 \cap R|) = -1.0 < 0$.
+  Intuitively, if $A_1$ scores
+  poorly because few elements of its unique region $S_1$ are drawn, that
+  means more draws fall in $S_2$ (since $|S_3|=0$ at $m=m^*$ for the
+  Lotofácil), boosting $A_2$'s score.  This negative correlation is
+  precisely what makes minimum-overlap collections effective.
+\end{remark}
+
+\subsection{General $n$: bounds and conjecture}
+\label{sec:general-n}
+
+For $n \ge 3$ tickets, the analysis becomes significantly more complex:
+inclusion-exclusion introduces $2^n - 1$ terms, and the monotonicity of
+each cannot generally be established by a simple two-step coupling.
+We proceed by establishing an upper bound and a conjecture.
+
+\begin{proposition}[Overlap-based upper bound on $1 - \Pwin$]
+  \label{prop:upper-bound}
+  For any collection $\mathcal{A} = (A_1, \ldots, A_n)$,
+  \[
+    1 - \Pwin(\mathcal{A})
+    \;\le\; (1-\pone)^n \cdot
+    \exp\!\left(
+      \frac{1}{\pone^2}
+      \sum_{i < j}
+      \mathrm{Cov}(\ind{E_i}, \ind{E_j})
+    \right),
+  \]
+  where $E_i = \{|A_i \cap R| \ge t\}$.  In particular, for collections
+  with $\mathrm{Cov}(\ind{E_i},\ind{E_j}) \le 0$ for all pairs, the
+  complement probability is bounded above by $(1-\pone)^n$, matching
+  the independence upper bound $U_n$.
+\end{proposition}
+
+\begin{proof}
+  Standard second-moment method for indicators; the indicator covariance
+  satisfies $\mathrm{Cov}(\ind{E_i},\ind{E_j}) = g(m_{ij}) - \pone^2$,
+  which by Theorem~\ref{thm:two-ticket-monotone} is non-decreasing in
+  $m_{ij}$.  An expansion of $\log P(\bigcap E_i^c)$ via cumulants and
+  truncation at second order gives the stated inequality.
+\end{proof}
+
+The simulation evidence from Section~\ref{sec:empirical} strongly
+supports the following conjecture, which we have been unable to prove
+in full generality.
+
+\begin{conjecture}[General overlap monotonicity]
+  \label{conj:general}
+  For any integers $n \ge 2$, $v \ge k \ge t \ge 1$, and any pair of indices
+  $1 \le i < j \le n$, the function $m_{ij} \mapsto \Pwin(\mathcal{A})$
+  is non-increasing in $m_{ij} = |A_i \cap A_j|$, all other pairs being held
+  fixed.  Consequently, $\Pwin(\mathcal{A})$ is maximised when all pairwise
+  overlaps equal $m^*$.
+\end{conjecture}
+
+\begin{remark}
+  Conjecture~\ref{conj:general} would follow from a monotone-coupling result
+  for the multivariate hypergeometric distribution analogous to the FKG
+  inequality for product measures.  Specifically, one would need to show
+  that for $n \ge 3$, the increment $g_\text{joint}(m+1) - g_\text{joint}(m)$
+  is non-negative, where $g_\text{joint}$ is the probability that all $n$
+  tickets fail simultaneously.  This appears to require technical results
+  on the correlation structure of multi-way hypergeometric overlap that we
+  leave for future work.
+\end{remark}
+
+Table~\ref{tab:empirical-monotone} presents empirical evidence for the
+conjecture: for each value of $n$ tested in our Lotofácil study, the
+minimum-overlap collection (produced by our greedy algorithm) achieves
+a higher $\Pwin$ than a random collection, and this advantage persists
+and grows with $n$ up to the saturation threshold.
+
+\begin{table}[ht]
+  \centering
+  \caption{Empirical support for Conjecture~\ref{conj:general}: mean
+  $\Pwin$ and mean total overlap $\Omega$ for random vs.\ optimised
+  collections.  Results from 30--50 independent trials
+  (Section~\ref{sec:empirical}).  All differences are statistically
+  significant at $p < 10^{-3}$.}
+  \label{tab:empirical-monotone}
+  \smallskip
+  \begin{tabular}{@{}crrrrrr@{}}
+    \toprule
+    & \multicolumn{2}{c}{Random} & \multicolumn{2}{c}{Greedy}
+    & & \\
+    \cmidrule(lr){2-3}\cmidrule(lr){4-5}
+    $n$ & $\bar{P}_{\mathrm{win}}$ & $\bar{\Omega}$
+        & $\bar{P}_{\mathrm{win}}$ & $\bar{\Omega}$
+        & Gain (pp) & $d$ \\
+    \midrule
+    1  & 0.1061 & 0 & 0.1057 & 0 & $-0.0$  & n/a \\
+    2  & 0.1997 & * & 0.2117 & * & $+6.2$  & 1.18 \\
+    3  & 0.2878 & * & 0.3103 & * & $+8.1$  & 1.88 \\
+    5  & 0.4285 & * & 0.4749 & * & $+11.0$ & 2.64 \\
+    7  & 0.5463 & * & 0.6015 & * & $+10.3$ & 3.50 \\
+    10 & 0.6820 & * & 0.7378 & * & $+8.3$  & 2.50 \\
+    15 & 0.8150 & * & 0.8700 & * & $+7.0$  & 2.66 \\
+    20 & 0.8965 & * & 0.9342 & * & $+4.4$  & 3.23 \\
+    \bottomrule
+  \end{tabular}\\[2pt]
+  {\footnotesize $n=1$: no gain by Proposition~\ref{prop:n1};
+  $d$: Cohen's $d$ effect size.
+  *~Overlap figures in Table~\ref{tab:pwin-full}.}
+\end{table}

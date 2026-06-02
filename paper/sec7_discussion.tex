@@ -1,0 +1,104 @@
+%% sec7_discussion.tex -- Section 7: Discussion and Conclusion
+
+\section{Discussion}
+\label{sec:discussion}
+
+The classical literature on lotto designs \cite{Furedi1996, Li2002,
+Gordon1995} seeks the minimum number of tickets required to guarantee a
+prize.  Our probabilistic framework addresses a complementary question:
+given exactly $n$ tickets (typically far fewer than the deterministic
+minimum), how should they be arranged to maximise the probability of
+winning?  The two objectives align when $n \ge C(v,k,t)$, but for practical
+budgets they lead to different optimisation problems.  Theorem~\ref{thm:two-ticket-monotone}
+and Proposition~\ref{prop:mutual-excl} show that the probabilistic problem
+has a cleaner structure in the high-$k$ regime: at near-minimum overlap the
+two winning events are mutually exclusive, so $P_{\mathrm{win}} = 2p$
+exactly.  No analogous result appears in the deterministic covering literature.
+
+\citet{Liu2024} study a related probabilistic formulation for the UK 6/59
+lottery and find that balanced pairwise overlap, rather than minimum overlap,
+maximises expected return across all prize tiers.  Their finding is not in
+contradiction with ours.  For the top prize level only, which is what we
+address, minimum overlap is optimal for $n=2$ as proved in
+Theorem~\ref{thm:two-ticket-monotone}.  For a multi-tier prize structure,
+the optimal strategy may involve non-minimum overlap at certain tiers; we
+leave this extension for future work.
+
+The framework applies to any $(v,k)$-lottery with a single prize threshold.
+Three natural extensions illustrate the range of parameters.  In Lotto 6/49
+(Canada, Germany), where $v=49$, $k=6$, $m^*=0$, tickets can be disjoint
+and the mutual-exclusivity result follows trivially.  The same holds for the
+Brazilian Mega-Sena ($v=60$, $k=6$) and Quina ($v=80$, $k=5$).  The
+Lotof\'{a}cil is distinguished by its ratio $k/v = 15/25 = 0.6$, which
+forces non-trivial overlap and makes the optimisation problem genuinely hard.
+
+\begin{remark}[Expected value]
+  In a model with a fixed prize $V$ and ticket cost $c$, the expected return
+  of an $n$-ticket collection is $V \cdot P_{\mathrm{win}}(\mathcal{A}) - nc$.
+  Because $V$ and $nc$ are constants, maximising $P_{\mathrm{win}}$ is
+  equivalent to maximising expected return: our method reduces the expected
+  loss for a given budget, even though it cannot make expected return positive.
+  The Lotof\'{a}cil's actual return rate is approximately 45\% of revenue
+  \citep{CEF2024}, so the expected return on a single ticket of cost~$c$ is
+  roughly $-0.55c$, regardless of the numbers chosen.  In the real game,
+  prizes at each tier are pooled and divided among all winners, so the
+  expected return also depends on how many other players hold the same
+  winning combination.  Our method addresses only the $P_{\mathrm{win}}$
+  component; the prize-division component would require data on the
+  distribution of bets across all players, which we do not use.
+\end{remark}
+
+There are two main limitations to the current analysis.  First, the model
+ignores prize division.  In practice, a ticket that avoids popular number
+combinations earns a higher expected payout even with the same prize
+probability, because fewer other players hold the same ticket.  Incorporating
+this would require data on the distribution of all bets placed, which we
+do not use.  Second, Conjecture~\ref{conj:general} remains unproved for
+$n \ge 3$.  A complete proof would require monotone-coupling results for
+multivariate hypergeometric distributions that, to our knowledge, are not
+available in the literature.  Establishing such results would also have
+implications for other statistical problems where multiple dependent tests
+are performed over a shared random sample.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+We studied the selection of $n$ tickets in a $(v,k)$-lottery to maximise
+the probability that at least one ticket wins.  Three contributions stand
+out.  First, for $n=2$ we proved that the joint prize probability is
+non-increasing in pairwise overlap (Theorem~\ref{thm:two-ticket-monotone}),
+so minimum-overlap collections are optimal.  For the Lotof\'{a}cil
+specifically, any two tickets with overlap at most six have mutually exclusive
+winning events and achieve $P_{\mathrm{win}} = 2p$ exactly
+(Proposition~\ref{prop:mutual-excl}).  Second, two algorithms
+(Algorithms~\ref{alg:greedy} and~\ref{alg:sa}) produce near-minimum-overlap
+collections in time linear in $n$, with a provable $(1-1/e)$-approximation
+guarantee for the greedy stage.  Third, a paired Monte Carlo experiment on
+the Lotof\'{a}cil confirms gains of up to eleven percentage points over
+random selection at $n=5$, with statistically significant advantages at
+every $n \ge 2$ up to the saturation point near $n=50$.  These results
+provide the first rigorous probabilistic treatment of multi-ticket lottery
+selection in the high-$k$ regime and lay groundwork for extensions to
+multi-tier prize structures and prize-division models.
+
+\paragraph*{Acknowledgements.}  [To be completed.]
+
+\appendix
+\section{Computation of Table~\ref{tab:delta-g}}
+\label{sec:appendix-computation}
+
+The values $g(m)$ in Table~\ref{tab:delta-g} were computed by exact
+enumeration of the multivariate hypergeometric distribution.  For parameters
+$v=25$, $k=15$, $t=11$ and overlap $m$, the partition sizes are
+$(|S_0|,|S_1|,|S_2|,|S_3|) = (m, 15{-}m, 15{-}m, m{-}5)$.  The joint-win
+probability is
+\[
+  g(m) = \frac{1}{\binom{25}{15}}
+  \sum_{\substack{x_0+x_1+x_2+x_3=15 \\
+        x_i \le |S_i| \\
+        x_0+x_1 \ge 11,\; x_0+x_2 \ge 11}}
+  \binom{m}{x_0}\binom{15{-}m}{x_1}\binom{15{-}m}{x_2}\binom{m{-}5}{x_3}.
+\]
+All arithmetic used Python's \texttt{math.comb} for exact integer
+evaluation; no floating-point rounding occurs until the final division
+by $\binom{25}{15} = 3{,}268{,}760$.
