@@ -9,9 +9,14 @@ Objetivo matemático rigoroso:
 
 Fundamento:
   P(≥11 em pelo menos um) = 1 − P(nenhum ≥11)
-  P(nenhum ≥11) é minimizado quando os bilhetes são o mais "independentes"
-  possível — ou seja, quando a sobreposição pareada entre eles é mínima.
-  Minimizar sobreposição total é portanto o objetivo matemático correto.
+  Para dois bilhetes, P(ambos ≥11) = g(m) depende só do overlap m = |A_i ∩ A_j|
+  e é crescente e CONVEXA em m, com g(5) = g(6) = 0 (eventos mutuamente
+  exclusivos). Por inclusão-exclusão, o objetivo correto é minimizar
+  Σ_{i<j} g(m_ij) — e NÃO Σ_{i<j} m_ij: como g é convexa e o vínculo
+  combinatório Σ m_ij ≥ Σ_x C(d_x, 2) impede todos os pares no mínimo,
+  perfis BALANCEADOS de overlap (ex.: (7,7,6) para n=3) superam perfis
+  extremos (ex.: (5,5,10)), mesmo com a mesma soma. Verificado por
+  enumeração exata (paper/verification/).
 
 Nota sobre valor esperado:
   O VE de cada bilhete é NEGATIVO (a loteria é um imposto sobre probabilidade).
@@ -38,6 +43,38 @@ import matplotlib.pyplot as plt
 # ---------------------------------------------------------------------------
 N_UNIVERSE = 25   # dezenas disponíveis: 1 a 25
 N_DRAW = 15       # dezenas por bilhete
+PRIZE_T = 11      # limiar de prêmio estudado
+
+
+def _pairwise_joint_win_table() -> np.ndarray:
+    """
+    g(m) = P(|A1 ∩ R| ≥ 11 E |A2 ∩ R| ≥ 11) para |A1 ∩ A2| = m, exata.
+
+    Enumeração da distribuição hipergeométrica multivariada sobre a partição
+    canônica (S0=m, S1=S2=15−m, S3=m−5). Índices 0..15; overlaps < 5 são
+    impossíveis para 15-subconjuntos de 25 e ficam com 0.
+    """
+    table = np.zeros(N_DRAW + 1, dtype=np.float64)
+    v, k, t = N_UNIVERSE, N_DRAW, PRIZE_T
+    den = comb(v, k)
+    for m in range(max(0, 2 * k - v), k + 1):
+        s0, s1, s2, s3 = m, k - m, k - m, v - 2 * k + m
+        tot = 0
+        for x0 in range(min(s0, k) + 1):
+            for x1 in range(min(s1, k - x0) + 1):
+                if x0 + x1 < t:
+                    continue
+                rem = k - x0 - x1
+                for x2 in range(max(0, t - x0), min(s2, rem) + 1):
+                    x3 = rem - x2
+                    if 0 <= x3 <= s3:
+                        tot += comb(s0, x0) * comb(s1, x1) * comb(s2, x2) * comb(s3, x3)
+        table[m] = tot / den
+    return table
+
+
+# Tabela exata g(m), usada como objetivo do SA:  minimizar Σ_{i<j} g(m_ij)
+G_TABLE = _pairwise_joint_win_table()
 
 # ---------------------------------------------------------------------------
 # Referência teórica: probabilidade por bilhete (distribuição hipergeométrica)
@@ -149,40 +186,46 @@ def greedy_coverage_select(pool: np.ndarray, n: int) -> np.ndarray:
 
 
 # ---------------------------------------------------------------------------
-# Módulo 3 — Refinamento por Simulated Annealing (objetivo: overlap mínimo)
+# Módulo 3 — Refinamento por Simulated Annealing (objetivo: Σ g(m_ij) mínimo)
 # ---------------------------------------------------------------------------
 
 def refine_overlap_sa(
     tickets: np.ndarray,
     rng: np.random.Generator,
     n_iter: int = 8_000,
-    T0: float = 2.0,
+    T0: float = 0.005,
     cooling: float = 0.9993,
 ) -> np.ndarray:
     """
-    Refina o conjunto de bilhetes minimizando a sobreposição total pareada.
+    Refina o conjunto de bilhetes minimizando a probabilidade conjunta de
+    vitória entre pares.
 
     Objetivo matemático (minimizar):
-        Σ_{i<j} |A_i ∩ A_j|   (soma de todas as interseções entre pares)
+        Σ_{i<j} g(|A_i ∩ A_j|)
 
-    Fundamento: sobreposição menor → eventos mais independentes →
-    P(≥11 em ao menos um bilhete) maior.
+    onde g(m) = P(ambos os bilhetes ≥11 acertos | overlap m), tabelada
+    exatamente em G_TABLE. Por inclusão-exclusão, este é o termo de segunda
+    ordem de 1 − P_win; minimizá-lo maximiza P_win até segunda ordem.
 
-    Implementação eficiente: em vez de recalcular a matriz de sobreposição
-    inteira a cada iteração, calcula apenas o delta causado pela mutação
-    de um único bilhete — O(n × 25) por passo em vez de O(n² × 25).
+    Este objetivo NÃO é equivalente a minimizar Σ m_ij: g é convexa, então,
+    para a mesma soma, perfis balanceados (todos os pares perto de 7) dominam
+    perfis extremos (alguns pares em 5, outros em 10). g(5) = g(6) = 0,
+    logo pares com overlap ≤ 6 têm custo zero (eventos mutuamente exclusivos).
+
+    Implementação eficiente: apenas os overlaps do bilhete mutado mudam —
+    O(n × 25) por passo em vez de O(n² × 25).
 
     Parameters
     ----------
     tickets : ndarray shape (n, 15)
     rng     : numpy Generator
     n_iter  : iterações de SA
-    T0      : temperatura inicial
+    T0      : temperatura inicial (na escala de g: deltas típicos ~1e-3..1e-2)
     cooling : fator de resfriamento multiplicativo por iteração
 
     Returns
     -------
-    ndarray shape (n, 15) — bilhetes com sobreposição total reduzida
+    ndarray shape (n, 15) — bilhetes com Σ g(m_ij) reduzido
     """
     universe = np.arange(1, N_UNIVERSE + 1, dtype=np.int32)
     n = len(tickets)
@@ -191,10 +234,10 @@ def refine_overlap_sa(
     cur_bool = np.zeros((n, N_UNIVERSE), dtype=np.uint8)
     cur_bool[np.repeat(np.arange(n), N_DRAW), current.ravel() - 1] = 1
 
-    # Objetivo inicial: soma do triângulo superior da matriz de overlap
+    # Objetivo inicial: Σ g(m_ij) sobre o triângulo superior
     overlap_mat = cur_bool @ cur_bool.T
     idx_u = np.triu_indices(n, k=1)
-    current_obj = int(overlap_mat[idx_u].sum())
+    current_obj = float(G_TABLE[overlap_mat[idx_u]].sum())
 
     best = current.copy()
     best_obj = current_obj
@@ -216,7 +259,7 @@ def refine_overlap_sa(
         new_b = np.zeros(N_UNIVERSE, dtype=np.uint8)
         new_b[t_new - 1] = 1
 
-        delta = int((others @ new_b).sum()) - int((others @ old_b).sum())
+        delta = float(G_TABLE[others @ new_b].sum()) - float(G_TABLE[others @ old_b].sum())
 
         if delta < 0 or rng.random() < np.exp(-delta / T):
             current[ti] = t_new
@@ -228,7 +271,38 @@ def refine_overlap_sa(
 
         T *= cooling
 
-    return best
+    # ── Quench final: descida gulosa determinística até ótimo local ──────
+    # Percorre todos os movimentos de troca única (dezena que sai, dezena que
+    # entra) de cada bilhete e aplica sempre o melhor enquanto houver melhora.
+    # Garante que o resultado é um mínimo local de Σ g(m_ij) sob trocas únicas.
+    current = best
+    cur_bool = np.zeros((n, N_UNIVERSE), dtype=np.uint8)
+    cur_bool[np.repeat(np.arange(n), N_DRAW), current.ravel() - 1] = 1
+    if n >= 2:
+        improved = True
+        while improved:
+            improved = False
+            for ti in range(n):
+                others = cur_bool[np.arange(n) != ti]          # (n-1, 25)
+                ov = (others @ cur_bool[ti]).astype(np.int64)  # (n-1,)
+                inside = current[ti]                            # (15,)
+                outside = np.setdiff1d(universe, inside, assume_unique=True)
+                rem = others[:, inside - 1].astype(np.int64)    # (n-1, 15)
+                add = others[:, outside - 1].astype(np.int64)   # (n-1, 10)
+                base = G_TABLE[ov].sum()
+                new_ov = ov[:, None, None] - rem[:, :, None] + add[:, None, :]
+                deltas = G_TABLE[new_ov].sum(axis=0) - base     # (15, 10)
+                j, x = np.unravel_index(int(np.argmin(deltas)), deltas.shape)
+                if deltas[j, x] < -1e-15:
+                    out_el, in_el = int(inside[j]), int(outside[x])
+                    t_new = current[ti].copy()
+                    t_new[j] = in_el
+                    current[ti] = np.sort(t_new)
+                    cur_bool[ti, out_el - 1] = 0
+                    cur_bool[ti, in_el - 1] = 1
+                    improved = True
+
+    return current
 
 
 # ---------------------------------------------------------------------------
@@ -394,8 +468,9 @@ def generate_apostas(
 
     A otimização é puramente matemática:
     - Greedy: maximiza cobertura marginal de {1..25} a cada bilhete adicionado
-    - Annealing: refina minimizando sobreposição total pareada Σ|A_i ∩ A_j|
-    Ambos maximizam P(≥11 acertos em pelo menos um bilhete).
+    - Annealing: refina minimizando Σ g(m_ij), a soma das probabilidades de
+      vitória conjunta entre pares (favorece perfis de overlap balanceados)
+    Ambos aumentam P(≥11 acertos em pelo menos um bilhete).
 
     Parameters
     ----------
@@ -428,7 +503,7 @@ def generate_apostas(
     selected = greedy_coverage_select(pool, n_bilhetes)
 
     if modo_otimizacao == "annealing":
-        print("      Refinando com SA (minimizando sobreposição pareada)...")
+        print("      Refinando com SA (minimizando Σ g(m_ij) — perfil balanceado)...")
         selected = refine_overlap_sa(selected, rng)
 
     print(f"[3/3] Simulando {num_simulacoes:,} sorteios (Monte Carlo)...")
@@ -552,8 +627,9 @@ if __name__ == "__main__":
         print(f"  B{i + 1}: {b}")
 
     print(f"\nP(≥11 em algum bilhete) — simulação : {resultado['probabilidade_>=11']:.4f}")
-    print(f"P(≥11 em algum bilhete) — ref. teórica: {resultado['prob_referencia']:.4f}")
-    print(f"  (diferença = ineficiência por sobreposição forçada)")
+    print(f"P(≥11 em algum bilhete) — ref. independência: {resultado['prob_referencia']:.4f}")
+    print(f"  (a otimização SUPERA a referência: pares com overlap <=6 têm")
+    print(f"   eventos mutuamente exclusivos — anticorrelação vale mais que independência)")
     print(f"\nCobertura total     : {resultado['cobertura_total']}/25")
     print(f"Sobreposição média  : {resultado['sobreposicao_media']:.2f} dezenas em comum por par")
     print(f"Sobreposição total  : {resultado['sobreposicao_total']}")
