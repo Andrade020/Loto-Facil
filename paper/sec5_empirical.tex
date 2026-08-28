@@ -13,7 +13,9 @@ chosen by the player.  Prizes are awarded for matching $t \in \{11,12,13,
 most frequently.  The relevant parameters are $v=25$, $k=15$, $t=11$,
 giving single-ticket prize probability $p(25,15,11) \approx 0.10589$
 (equation~\eqref{eq:pone-lotofacil}), minimum pairwise overlap $m^* = 5$,
-and independence upper bound $U_n = 1-(0.89411)^n$.
+and independence benchmark $U_n = 1-(0.89411)^n$, which by
+Proposition~\ref{prop:random-benchmark} is exactly the expected performance
+of random play.
 
 \subsection{Experimental design}
 \label{sec:exp-design}
@@ -22,9 +24,12 @@ Three ticket-selection strategies are compared.  The \emph{random baseline}
 draws $n$ tickets independently from $\binom{[25]}{15}$ with no coordination.
 The \emph{greedy} strategy runs Algorithm~\ref{alg:greedy} on a pool of
 $M = \max(500, 20n)$ random candidates.  The \emph{greedy+SA} strategy
-starts from the greedy output and runs Algorithm~\ref{alg:sa} with
+starts from the greedy output and runs Algorithm~\ref{alg:sa} with the
+balanced-overlap objective $G(\mathcal{A}) = \sum_{i<j} g(m_{ij})$,
 $N_{\mathrm{iter}} = \min(500 + 100n, 2000)$ iterations, initial temperature
-$T_0 = 2.0$, and cooling factor $\alpha = 0.9993$.
+$T_0 = 5 \times 10^{-3}$ (on the scale of the $g$-increments of
+Table~\ref{tab:delta-g}), cooling factor $\alpha = 0.9993$, and the final
+deterministic quench.
 
 For each strategy and value of $n$, the joint prize probability
 $P_{\mathrm{win}}(\mathcal{A})$ is estimated by counting the fraction of
@@ -40,19 +45,21 @@ where $B = 50$ for $n \le 5$, $B = 40$ for $n \in \{7,10\}$, and $B = 30$
 for $n \ge 15$.  The values tested are
 $n \in \{1, 2, 3, 5, 7, 10, 15, 20, 25, 30, 40, 50, 75, 100\}$.
 All simulations used Python~3.10 with NumPy's \texttt{default\_rng};
-supplementary code is provided.
+the code and the exact-verification scripts are provided as supplementary
+material.
 
 \subsection{Results}
 \label{sec:results-main}
 
 Table~\ref{tab:pwin-full} reports estimated $P_{\mathrm{win}}$ for each
-strategy and value of $n$, together with the independence upper bound $U_n$
-and the absolute gain of Greedy+SA over random.
+strategy and value of $n$, together with the independence benchmark $U_n$
+and the absolute gain of Greedy+SA over random, in percentage points.
 
 \begin{table}[ht]
   \centering
   \caption{Estimated $P_{\mathrm{win}}$ (mean $\pm$ 95\% CI across $B$ trials)
-           for the three strategies.  SA = Greedy+SA.  Gain is the absolute
+           for the three strategies.  SA = Greedy+SA with the
+           balanced-overlap objective $G$.  Gain is the \emph{absolute}
            difference between SA and random, in percentage points.
            $U_n = 1-(0.89411)^n$.}
   \label{tab:pwin-full}
@@ -63,61 +70,89 @@ and the absolute gain of Greedy+SA over random.
     $n$ & Random & Greedy & SA & $U_n$ & Gain (pp) & $B$ \\
     \midrule
     1   & $0.1061{\pm}0.0003$ & $0.1057{\pm}0.0004$ & $0.1057{\pm}0.0004$ & 0.1059 & $-0.0$           & 50 \\
-    2   & $0.1997{\pm}0.0028$ & $0.2117{\pm}0.0005$ & $0.2120{\pm}0.0005$ & 0.2006 & $+6.2$           & 50 \\
-    3   & $0.2878{\pm}0.0033$ & $0.3103{\pm}0.0010$ & $0.3111{\pm}0.0010$ & 0.2852 & $+8.1$           & 50 \\
-    5   & $0.4285{\pm}0.0047$ & $0.4749{\pm}0.0017$ & $0.4756{\pm}0.0018$ & 0.4286 & $+11.0^\dagger$  & 50 \\
-    7   & $0.5463{\pm}0.0049$ & $0.6015{\pm}0.0027$ & $0.6025{\pm}0.0025$ & 0.5432 & $+10.3$          & 40 \\
-    10  & $0.6820{\pm}0.0068$ & $0.7378{\pm}0.0025$ & $0.7388{\pm}0.0027$ & 0.6735 & $+8.3$           & 40 \\
-    15  & $0.8150{\pm}0.0060$ & $0.8700{\pm}0.0034$ & $0.8717{\pm}0.0034$ & 0.8134 & $+7.0$           & 30 \\
-    20  & $0.8965{\pm}0.0044$ & $0.9342{\pm}0.0018$ & $0.9360{\pm}0.0018$ & 0.8934 & $+4.4$           & 30 \\
-    25  & $0.9407{\pm}0.0036$ & $0.9676{\pm}0.0012$ & $0.9677{\pm}0.0012$ & 0.9391 & $+2.9$           & 30 \\
-    30  & $0.9646{\pm}0.0024$ & $0.9839{\pm}0.0006$ & $0.9841{\pm}0.0007$ & 0.9652 & $+2.0$           & 30 \\
-    40  & $0.9889{\pm}0.0013$ & $0.9959{\pm}0.0002$ & $0.9961{\pm}0.0003$ & 0.9886 & $+0.7$           & 30 \\
-    50  & $0.9966{\pm}0.0005$ & $0.9989{\pm}0.0001$ & $0.9990{\pm}0.0001$ & 0.9963 & $+0.2$           & 30 \\
-    75  & $0.9998{\pm}0.0001$ & $1.0000{\pm}0.0000$ & $1.0000{\pm}0.0000$ & 0.9998 & $+0.02$          & 30 \\
+    2   & $0.2005{\pm}0.0024$ & $0.2121{\pm}0.0006$ & $0.2120{\pm}0.0005$ & 0.2006 & $+1.2$           & 50 \\
+    3   & $0.2879{\pm}0.0031$ & $0.3106{\pm}0.0007$ & $0.3144{\pm}0.0006$ & 0.2852 & $+2.6$           & 50 \\
+    5   & $0.4329{\pm}0.0045$ & $0.4751{\pm}0.0018$ & $0.4973{\pm}0.0008$ & 0.4286 & $+6.4$           & 50 \\
+    7   & $0.5447{\pm}0.0054$ & $0.6001{\pm}0.0029$ & $0.6316{\pm}0.0007$ & 0.5432 & $+8.7$           & 40 \\
+    10  & $0.6735{\pm}0.0075$ & $0.7359{\pm}0.0029$ & $0.7777{\pm}0.0009$ & 0.6735 & $+10.4^\dagger$  & 40 \\
+    15  & $0.8162{\pm}0.0054$ & $0.8687{\pm}0.0019$ & $0.9116{\pm}0.0009$ & 0.8134 & $+9.5$           & 30 \\
+    20  & $0.8957{\pm}0.0049$ & $0.9347{\pm}0.0020$ & $0.9690{\pm}0.0006$ & 0.8934 & $+7.3$           & 30 \\
+    25  & $0.9369{\pm}0.0042$ & $0.9666{\pm}0.0010$ & $0.9904{\pm}0.0004$ & 0.9391 & $+5.3$           & 30 \\
+    30  & $0.9619{\pm}0.0030$ & $0.9845{\pm}0.0007$ & $0.9972{\pm}0.0001$ & 0.9652 & $+3.5$           & 30 \\
+    40  & $0.9894{\pm}0.0012$ & $0.9959{\pm}0.0003$ & $0.9998{\pm}0.0000$ & 0.9886 & $+1.0$           & 30 \\
+    50  & $0.9961{\pm}0.0004$ & $0.9990{\pm}0.0001$ & $1.0000{\pm}0.0000$ & 0.9963 & $+0.4$           & 30 \\
+    75  & $0.9998{\pm}0.0000$ & $1.0000{\pm}0.0000$ & $1.0000{\pm}0.0000$ & 0.9998 & $+0.02$          & 30 \\
     100 & $1.0000{\pm}0.0000$ & $1.0000{\pm}0.0000$ & $1.0000{\pm}0.0000$ & 1.0000 & ${\approx}0$     & 30 \\
     \bottomrule
   \end{tabular}}\\[2pt]
-  {\footnotesize Gain: SA minus Random (percentage points).
+  {\footnotesize Gain: SA minus Random (absolute percentage points).
   $\pm$: $1.96\,\mathrm{SE}$ across $B$ trials.
   $U_n=1-(0.89411)^n$.
   ${}^\dagger$ Peak absolute gain.}
 \end{table}
 
 Several features of the results deserve comment.  At $n=1$, all three
-strategies produce the same value, consistent with Proposition~\ref{prop:n1}.
-The gain of the optimised strategy over random peaks at $n=5$ ($+11.0$ pp)
-and remains above ten percentage points at $n=7$.  For small $n$, the SA
-values exceed the independence upper bound $U_n$: at $n=5$,
-$P_{\mathrm{win}}^{\mathrm{SA}} = 0.476 > U_5 = 0.429$.  This is not a
-paradox; it reflects the negative-correlation regime described in
-Proposition~\ref{prop:mutual-excl}, where near-minimum overlap makes the
-winning events approximately mutually exclusive, yielding $P_{\mathrm{win}}
-\approx 2p > U_2$.  The SA refinement adds at most 0.1 percentage points
-over the pure greedy solution for most values of $n$, indicating that the
-greedy construction already produces near-minimum-overlap collections for
-these parameters.
+strategies produce the same value, consistent with
+Proposition~\ref{prop:n1}.  The random column tracks $U_n$ closely at every
+$n$, exactly as Proposition~\ref{prop:random-benchmark} predicts.  The
+absolute gain of the optimised strategy over random rises to a peak of
+$10.4$ percentage points at $n = 10$ and remains above six points for
+$5 \le n \le 20$.
+
+The optimised values agree with the exact theory where the latter is
+available.  At $n = 2$ the SA estimate $0.2120 \pm 0.0005$ matches the
+exact optimum $2p \approx 0.21178$ (Corollary~\ref{cor:min-overlap-optimal});
+at $n = 3$ the estimate $0.3144 \pm 0.0006$ matches the exact optimum
+$0.31467$ of Theorem~\ref{thm:three-optimal}, and the SA collections
+realise the optimal profile $\{7,7,6\}$ in every trial (mean pairwise
+overlap $6.667 = 20/3$).  The comparison extends to every certified case:
+running the algorithm from ten independent seeds and evaluating each
+output exactly by enumeration of all $\binom{25}{15}$ draws, the
+certified optimum of Theorem~\ref{thm:certified-optima} is reached in
+$10$, $3$, $9$ and $3$ of the ten runs for $n = 3,4,5,6$ respectively.
+The algorithm therefore finds the global optimum in all four certified
+cases, but not from every start: the landscape of $G$ contains suboptimal
+balanced profiles in which the quench can settle.  In practice this
+argues for wrapping Algorithm~\ref{alg:sa} in a multi-start loop and
+keeping the best $G$ found, at a cost linear in the number of starts.
+For larger $n$ the SA collections continue to attain
+the degree bound of Proposition~\ref{prop:degree-bound} with balanced
+profiles: mean pairwise overlap exactly $7.5$ at $n=5$ and
+$8.\overline{3}$ at $n=10$.
+
+From $n \ge 2$ onwards the SA values \emph{exceed} the independence
+benchmark $U_n$; at the peak, $P_{\mathrm{win}}^{\mathrm{SA}} = 0.778$
+versus $U_{10} = 0.674$.  This is not a paradox: as established in
+Section~\ref{sec:framework}, $U_n$ is not an upper bound, and coordinated
+collections profit from the mutual-exclusivity mechanism of
+Proposition~\ref{prop:mutual-excl}.  The gap between SA and the pure
+greedy solution (up to $4.3$ points at $n = 15$) isolates the value of the
+balanced-overlap objective: greedy fixes coverage, but only the $G$-driven
+refinement fixes the overlap \emph{profile}.
 
 \subsection{Saturation}
 \label{sec:saturation}
 
-To compare the optimised strategy against its theoretical ceiling we define
-coverage efficiency $\eta(n) = P_{\mathrm{win}}^{\mathrm{SA}}(n) / U_n$.
-Values above one arise for the reason just noted.  As $n$ grows, $\eta(n)$
-converges to one as both the optimised and random strategies approach
-$P_{\mathrm{win}} = 1$.  The empirical saturation threshold, defined as the
-smallest $n$ for which $P_{\mathrm{win}} > 0.999$, is approximately $n = 75$
-for both strategies.  Beyond $n = 50$, the absolute gain over random falls
-below $0.2$ percentage points, and the practical value of further
-optimisation becomes negligible.
+To compare the optimised strategy against the independence benchmark we
+define the efficiency ratio
+$\eta(n) = P_{\mathrm{win}}^{\mathrm{SA}}(n) / U_n$.  Values above one
+reflect the negative-correlation bonus; as $n$ grows, $\eta(n)$ converges
+to one as both strategies approach $P_{\mathrm{win}} = 1$.  The empirical
+saturation threshold, defined as the smallest tested $n$ for which
+$P_{\mathrm{win}} \ge 0.999$, is $n = 40$ for the optimised strategy and
+$n = 75$ for the random baseline: optimisation reaches near-certainty with
+roughly half the budget.  Beyond $n = 50$ the absolute gain falls below
+$0.4$ percentage points and further optimisation has negligible practical
+value.
 
 Table~\ref{tab:efficiency} reports $\eta(n)$ at selected values.
 
 \begin{table}[ht]
   \centering
-  \caption{Coverage efficiency $\eta(n) = P_{\mathrm{win}}^{\mathrm{SA}} / U_n$
+  \caption{Efficiency $\eta(n) = P_{\mathrm{win}}^{\mathrm{SA}} / U_n$
            for the Greedy+SA strategy.  Values above one reflect
-           the negative-correlation bonus of near-minimum overlap.}
+           the negative-correlation bonus of balanced near-minimum
+           overlap.}
   \label{tab:efficiency}
   \smallskip
   \begin{tabular}{@{}rcccc@{}}
@@ -125,11 +160,11 @@ Table~\ref{tab:efficiency} reports $\eta(n)$ at selected values.
     $n$ & $P_{\mathrm{win}}^{\mathrm{SA}}$ & $U_n$ & $\eta(n)$ & $U_n - P_{\mathrm{win}}^{\mathrm{SA}}$ \\
     \midrule
     2  & 0.2120 & 0.2006 & 1.057 & $-0.011$ \\
-    5  & 0.4756 & 0.4286 & 1.110 & $-0.047$ \\
-    10 & 0.7388 & 0.6735 & 1.097 & $-0.065$ \\
-    20 & 0.9360 & 0.8934 & 1.048 & $-0.043$ \\
-    30 & 0.9841 & 0.9652 & 1.020 & $-0.019$ \\
-    50 & 0.9990 & 0.9963 & 1.003 & $-0.003$ \\
+    5  & 0.4973 & 0.4286 & 1.160 & $-0.069$ \\
+    10 & 0.7777 & 0.6735 & 1.155 & $-0.104$ \\
+    20 & 0.9690 & 0.8934 & 1.085 & $-0.076$ \\
+    30 & 0.9972 & 0.9652 & 1.033 & $-0.032$ \\
+    50 & 1.0000 & 0.9963 & 1.004 & $-0.004$ \\
     75 & 1.0000 & 0.9998 & 1.000 & $\approx 0$ \\
     \bottomrule
   \end{tabular}

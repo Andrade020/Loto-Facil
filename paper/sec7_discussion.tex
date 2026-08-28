@@ -16,21 +16,33 @@ two winning events are mutually exclusive, so $P_{\mathrm{win}} = 2p$
 exactly.  No analogous result appears in the deterministic covering literature.
 
 \citet{Liu2024} study a related probabilistic formulation for the UK 6/59
-lottery and find that balanced pairwise overlap, rather than minimum overlap,
-maximises expected return across all prize tiers.  Their finding is not in
-contradiction with ours.  For the top prize level only, which is what we
-address, minimum overlap is optimal for $n=2$ as proved in
-Theorem~\ref{thm:two-ticket-monotone}.  For a multi-tier prize structure,
-the optimal strategy may involve non-minimum overlap at certain tiers; we
-leave this extension for future work.
+lottery and find that spreading pairwise overlap \emph{evenly} across the
+ticket pairs --- balanced overlap --- is what improves the probability of
+winning smaller prizes, reporting gains of three to four percentage points
+over uniform random selection.  Our results give this phenomenon an exact
+mechanism, in a single-tier setting and a very different parameter regime.
+For $n = 2$, minimum overlap is optimal
+(Theorem~\ref{thm:two-ticket-monotone}), but from $n = 3$ onwards the
+degree bound of Proposition~\ref{prop:degree-bound} makes all-minimum
+profiles infeasible, and the convexity of the joint-win function $g$ makes
+the \emph{balanced} profile optimal --- certified exactly for $n = 3$ by
+Theorem~\ref{thm:three-optimal}, where the optimum $\{7,7,6\}$ contains no
+minimum-overlap pair at all.  Balancedness is therefore not a multi-tier
+artefact: it already governs the single-tier problem whenever more than
+two tickets are in play.
 
 The framework applies to any $(v,k)$-lottery with a single prize threshold.
 Three natural extensions illustrate the range of parameters.  In Lotto 6/49
-(Canada, Germany), where $v=49$, $k=6$, $m^*=0$, tickets can be disjoint
-and the mutual-exclusivity result follows trivially.  The same holds for the
-Brazilian Mega-Sena ($v=60$, $k=6$) and Quina ($v=80$, $k=5$).  The
-Lotof\'{a}cil is distinguished by its ratio $k/v = 15/25 = 0.6$, which
-forces non-trivial overlap and makes the optimisation problem genuinely hard.
+(Canada, Germany), $v=49$, $k=6$, $m^*=0$: tickets can be disjoint, and by
+Proposition~\ref{prop:mutual-excl} disjoint tickets have mutually exclusive
+winning events precisely when $2t > k$ --- true for the thresholds
+$t \in \{4,5,6\}$, but false at $t = 3 = k/2$, where a draw can split three
+matches and three matches across two disjoint tickets.  The same dichotomy
+applies to the Brazilian Mega-Sena ($v=60$, $k=6$, exclusivity for every
+prize tier $t \ge 4$) and Quina ($v=80$, $k=5$, exclusivity for $t \ge 3$).
+The Lotof\'{a}cil is distinguished by its ratio $k/v = 15/25 = 0.6$, which
+forces non-trivial overlap ($m^* = 5$) and makes the optimisation problem
+genuinely combinatorial.
 
 \begin{remark}[Expected value]
   In a model with a fixed prize $V$ and ticket cost $c$, the expected return
@@ -48,38 +60,90 @@ forces non-trivial overlap and makes the optimisation problem genuinely hard.
   distribution of bets across all players, which we do not use.
 \end{remark}
 
-There are two main limitations to the current analysis.  First, the model
-ignores prize division.  In practice, a ticket that avoids popular number
-combinations earns a higher expected payout even with the same prize
-probability, because fewer other players hold the same ticket.  Incorporating
-this would require data on the distribution of all bets placed, which we
-do not use.  Second, Conjecture~\ref{conj:general} remains unproved for
-$n \ge 3$.  A complete proof would require monotone-coupling results for
-multivariate hypergeometric distributions that, to our knowledge, are not
-available in the literature.  Establishing such results would also have
-implications for other statistical problems where multiple dependent tests
-are performed over a shared random sample.
+There are three main limitations to the current analysis.  First, the
+model ignores prize division.  In practice, a ticket that avoids popular
+number combinations earns a higher expected payout even with the same
+prize probability, because fewer other players hold the same ticket.
+Incorporating this would require data on the distribution of all bets
+placed, which we do not use.  Second, although the monotonicity question
+is now settled --- best-realisation monotonicity is proved for $n = 3$
+(Theorem~\ref{thm:profile-monotone}) and refuted for $n = 4$
+(Example~\ref{ex:n4-counterexample}) --- the \emph{balance principle}
+that emerges (global optima attain the degree bound of
+Proposition~\ref{prop:degree-bound} with a $\sum g$-minimising profile)
+is certified only where exhaustive enumeration is possible: the
+Lotof\'{a}cil with $3 \le n \le 6$ and the small $n = 4$ families of
+Remark~\ref{rem:balance-principle}.  Its general validity is the natural
+open problem left by this work.  Third, exact optimality for the
+Lotof\'{a}cil is certified up to $n = 6$
+(Theorems~\ref{thm:three-optimal} and~\ref{thm:certified-optima}); for
+$n \ge 7$ the balanced profiles produced by minimising $G$ are supported
+by the degree bound and by the empirical results, but a certificate of
+global optimality is open.  The obstruction is the profile search, whose
+cost grows as $11^{\binom{n}{2}}$ before pruning: the certified cases
+required $2.6 \times 10^4$, $1.9 \times 10^7$ and $2.8 \times 10^{11}$
+nodes for $n = 4, 5, 6$, so $n = 7$ would need a sharper bound than the
+third-order truncation \eqref{eq:bonferroni-ub} rather than merely more
+computing time.
 
 \section{Conclusion}
 \label{sec:conclusion}
 
 We studied the selection of $n$ tickets in a $(v,k)$-lottery to maximise
-the probability that at least one ticket wins.  Three contributions stand
-out.  First, for $n=2$ we proved that the joint prize probability is
+the probability that at least one ticket wins.  Four contributions stand
+out.  First, for $n=2$ we proved --- for every prize threshold $t$, via a
+measure-preserving swap coupling --- that the joint prize probability is
 non-increasing in pairwise overlap (Theorem~\ref{thm:two-ticket-monotone}),
-so minimum-overlap collections are optimal.  For the Lotof\'{a}cil
-specifically, any two tickets with overlap at most six have mutually exclusive
-winning events and achieve $P_{\mathrm{win}} = 2p$ exactly
-(Proposition~\ref{prop:mutual-excl}).  Second, two algorithms
-(Algorithms~\ref{alg:greedy} and~\ref{alg:sa}) produce near-minimum-overlap
-collections in time linear in $n$, with a provable $(1-1/e)$-approximation
-guarantee for the greedy stage.  Third, a paired Monte Carlo experiment on
-the Lotof\'{a}cil confirms gains of up to eleven percentage points over
-random selection at $n=5$, with statistically significant advantages at
-every $n \ge 2$ up to the saturation point near $n=50$.  These results
-provide the first rigorous probabilistic treatment of multi-ticket lottery
-selection in the high-$k$ regime and lay groundwork for extensions to
-multi-tier prize structures and prize-division models.
+with an exact closed form for the increment; tickets with overlap at most
+$2t-k-1$ (six, for the Lotof\'{a}cil) have mutually exclusive winning
+events and achieve $P_{\mathrm{win}} = 2p$ exactly
+(Proposition~\ref{prop:mutual-excl}).  Second, we showed that for
+$n \ge 3$ the naive extension of this monotonicity fails: $P_{\mathrm{win}}$
+is not determined by pairwise overlaps, coordinatewise monotonicity admits
+explicit counterexamples, all-minimum-overlap profiles are combinatorially
+infeasible, and the exact optimum for three Lotof\'{a}cil tickets is the
+\emph{balanced} profile $\{7,7,6\}$ with
+$P_{\mathrm{win}} = 3p - 2g(7) \approx 0.3147$
+(Theorem~\ref{thm:three-optimal}).  A certified branch-and-bound in exact
+integer arithmetic extends this to four, five and six tickets
+(Theorem~\ref{thm:certified-optima}): the optima are the balanced
+profiles $\{8^3,7^3\}$, $\{8^5,7^5\}$ and $\{8^{15}\}$, each attaining
+the degree bound with equality and beating uncoordinated play by $4.4$,
+$6.9$ and $7.4$ percentage points.  The monotonicity question is settled
+in full --- best-realisation monotonicity holds for $n = 3$, proved via a
+pattern-preserving swap coupling (Lemma~\ref{lem:pattern-swap},
+Theorem~\ref{thm:profile-monotone}), and fails from $n = 4$ onwards ---
+while every certified global optimum attains the degree bound with a
+balanced profile.  Third, we established that uncoordinated random play achieves the
+independence benchmark $U_n$ exactly in expectation
+(Proposition~\ref{prop:random-benchmark}), which turns every gain over the
+random baseline into a gain over independence itself.  Fourth, two
+algorithms (Algorithms~\ref{alg:greedy} and~\ref{alg:sa}, the latter
+minimising the convex joint-win loss $G = \sum_{i<j} g(m_{ij})$) recover
+the certified optima where they are known, and a paired Monte Carlo
+experiment on the Lotof\'{a}cil shows absolute gains over random selection
+of up to $10.4$ percentage points at $n = 10$, statistically significant
+at every $n \ge 2$, with saturation ($P_{\mathrm{win}} \ge 0.999$) reached
+at roughly half the budget required by random play ($n = 40$ versus
+$n = 75$).  To our knowledge, these results provide the first rigorous
+probabilistic treatment of multi-ticket lottery selection in the high-$k$
+regime; they lay groundwork for extensions to multi-tier prize structures
+and prize-division models.
+
+\paragraph*{Reproducibility and code availability.}
+All exact results (Tables~\ref{tab:delta-g}, \ref{tab:three-profiles}
+and~\ref{tab:certified-optima}, Theorems~\ref{thm:three-optimal},
+\ref{thm:certified-optima} and~\ref{thm:profile-monotone}, and the
+counterexamples) are computed in exact integer arithmetic; every Monte
+Carlo experiment uses a fixed, reported seed.  The certificates of
+Theorem~\ref{thm:certified-optima} are produced by two independent
+implementations --- one in Python, one in Julia, written from the same
+specification but sharing no code --- which agree on every value, and
+each certified optimal collection is additionally verified by brute-force
+enumeration of all $\binom{25}{15} = 3{,}268{,}760$ draws.  The complete
+source code --- the optimiser, the benchmark pipeline, and a verification
+suite that independently reproduces each table, certificate, and
+counterexample --- is provided as supplementary material.
 
 \paragraph*{Acknowledgements.}  [To be completed.]
 
@@ -102,3 +166,26 @@ probability is
 All arithmetic used Python's \texttt{math.comb} for exact integer
 evaluation; no floating-point rounding occurs until the final division
 by $\binom{25}{15} = 3{,}268{,}760$.
+
+The supplementary verification scripts recompute Table~\ref{tab:delta-g}
+and the increment formula \eqref{eq:increment} (2{,}303 parameter cases,
+exact arithmetic), enumerate all $1{,}250$ feasible three-ticket profiles
+behind Theorem~\ref{thm:three-optimal}, verify the counterexample of
+Example~\ref{ex:counterexample} by brute force over all
+$\binom{11}{7} = 330$ draws, validate the identity of
+Lemma~\ref{lem:pattern-swap} on several hundred exact instances with
+$n \in \{3,4\}$, verify Theorem~\ref{thm:profile-monotone} exhaustively
+for all $(v,k,t)$ with $v \le 13$, and establish the $n=4$
+counterexamples of Example~\ref{ex:n4-counterexample} by complete
+enumeration of all four-ticket collections in the stated families.
+
+The certificates of Theorem~\ref{thm:certified-optima} are produced by a
+self-contained Julia program that, for each $n \in \{4,5,6\}$, runs the
+branch-and-bound of the proof, enumerates the admissible intersection
+structures of every surviving profile, reports the optimal profiles and
+their multiplicities, and cross-validates the resulting collection by
+brute force over all $\binom{25}{15}$ draws.  The program reproduces the
+independently computed $n = 4$ certificate as a regression test before
+each run.  The searches complete in seconds for $n = 4,5$; the $n = 6$
+search visited $2.8 \times 10^{11}$ nodes and took $13.5$ hours on ten
+cores.

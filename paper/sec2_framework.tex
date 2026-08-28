@@ -118,15 +118,53 @@ Standard multivariate hypergeometric formulas give
   = \frac{k(v-k)}{v^2(v-1)}\,(mv - k^2).
 \end{equation}
 This covariance is negative when $m < k^2/v$, zero at $m = k^2/v$, and
-positive for larger $m$.  For the Lotof\'{a}cil, the inflection point is at
+positive for larger $m$; for the Lotof\'{a}cil the sign change occurs at
 $m = 225/25 = 9$.  Since $m^* = 5$, two tickets at minimum overlap have
 negatively correlated scores ($\mathrm{Cov} = -1.0$), which is precisely the
 regime most favourable for $P_{\mathrm{win}}$.
 
-For reference throughout the paper we also define the \emph{independence upper
-bound} $U_n = 1-(1-p(v,k,t))^n$, the value $P_{\mathrm{win}}$ would take if
-the $n$ winning events were mutually independent.  For $v < 2k$ this bound
-is never attained; the gap to $U_n$ measures the cost of forced overlap.
+For reference throughout the paper we also define the \emph{independence
+benchmark} $U_n = 1-(1-p(v,k,t))^n$, the value $P_{\mathrm{win}}$ would take
+if the $n$ winning events were mutually independent.  Despite its provenance,
+$U_n$ is \emph{not} an upper bound on $P_{\mathrm{win}}$: negatively
+correlated winning events can exceed it, and
+Proposition~\ref{prop:mutual-excl} below exhibits pairs of tickets with
+$P_{\mathrm{win}} = 2p > U_2$.  The operational meaning of $U_n$ is
+different, and cleaner: it is \emph{exactly} the expected performance of
+uncoordinated random play.
+
+\begin{proposition}[Random collections achieve $U_n$ in expectation]
+  \label{prop:random-benchmark}
+  Let $A_1, \ldots, A_n$ be independent, uniformly distributed random
+  tickets in $\binom{[v]}{k}$, drawn independently of $R$.  Then
+  \[
+    E\bigl[P_{\mathrm{win}}(A_1,\ldots,A_n)\bigr] \;=\; U_n
+    \;=\; 1 - (1-\pone)^n ,
+  \]
+  with no error term: the expectation over ticket collections equals the
+  independence benchmark exactly.
+\end{proposition}
+
+\begin{proof}
+  Condition on the draw $R$.  By symmetry of the uniform distribution on
+  $\binom{[v]}{k}$, each event $\{|A_i \cap R| \ge t\}$ has conditional
+  probability $\pone$ given $R$, and these events are conditionally
+  independent across $i$ because the $A_i$ are independent.  Hence
+  $P(\text{no ticket wins} \mid R) = (1-\pone)^n$, a constant not depending
+  on $R$, and taking expectation over $R$ gives the claim.
+\end{proof}
+
+\begin{remark}
+  Proposition~\ref{prop:random-benchmark} calibrates the empirical study of
+  Section~\ref{sec:empirical}: the random baseline is an unbiased estimator
+  of $U_n$, so any statistically significant excess of an optimised
+  collection over the random baseline is an excess over independence
+  itself.  On average, overlap is therefore neither a cost nor a benefit
+  --- the expectation over random collections equals $U_n$ with no error
+  term --- but a resource to be structured: the gains reported in
+  Section~\ref{sec:empirical} come entirely from the negative-correlation
+  (mutual-exclusivity) bonus of coordinated collections.
+\end{remark}
 
 Finally, instantiating \eqref{eq:pone} for the Lotof\'{a}cil gives
 \begin{equation}
@@ -138,4 +176,4 @@ Finally, instantiating \eqref{eq:pone} for the Lotof\'{a}cil gives
   = \frac{346{,}126}{3{,}268{,}760}
   \approx 0.10589,
 \end{equation}
-and the independence upper bound is $U_n = 1-(0.89411)^n$.
+and the independence benchmark is $U_n = 1-(0.89411)^n$.

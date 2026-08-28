@@ -99,31 +99,42 @@ on cumulative overlap makes the secondary objective explicit.
   $\mathcal{P}$.  The approximation guarantee no longer applies rigorously,
   but empirical evidence (Section~\ref{sec:empirical}) shows the resulting
   collections are near-optimal.  For the regime $v=25$, $k=15$, the greedy
-  construction typically achieves full coverage of $[25]$ after just
-  $\lceil v/k^* \rceil = 2$ tickets (where $k^* = k - m^* = 10$ is the
-  number of unique elements per ticket), so coverage saturates rapidly and
-  the tie-breaking overlap rule dominates for $n \ge 2$.
+  construction achieves full coverage of $[25]$ after just two tickets:
+  the first covers $k = 15$ elements and a second ticket at minimum
+  overlap adds $k - m^* = 10$ new ones, reaching $2k - m^* = 25 = v$.
+  Coverage therefore saturates immediately, and the tie-breaking overlap
+  rule dominates the selection for $n \ge 2$.
 \end{remark}
 
 \subsection{Simulated Annealing Refinement}
 \label{sec:algo-sa}
 
-The greedy solution is not guaranteed to minimise $\Omega(\mathcal{A})$
-globally, since each greedy step is locally optimal.  We apply Simulated
-Annealing (SA) \cite{Kirkpatrick1983} to refine the greedy solution by
-minimising the total pairwise overlap objective
+The greedy stage controls coverage but not the overlap \emph{profile}.  As
+shown in Remark~\ref{rem:objective}, the correct second-order surrogate
+for $\Pwin$ is not the total overlap $\Omega(\mathcal{A}) = \sum_{i<j}
+m_{ij}$ but the \emph{pairwise joint-win loss}
 \[
-  \Omega(\mathcal{A}) = \sum_{1 \le i < j \le n} |A_i \cap A_j|.
+  G(\mathcal{A}) \;=\; \sum_{1 \le i < j \le n} g\bigl(|A_i \cap A_j|\bigr),
 \]
+where $g(\cdot)$ is the exact joint-win probability of
+Table~\ref{tab:delta-g}, precomputed once.  Because $g$ is convex with
+$g(m) = 0$ for $m \le 2t-k-1$, minimising $G$ drives the collection toward
+\emph{balanced} overlap profiles rather than toward a few minimum-overlap
+pairs compensated by large ones.  We apply Simulated Annealing (SA)
+\cite{Kirkpatrick1983} to the greedy solution, followed by a deterministic
+descent (quench) that guarantees local optimality under single-element
+swaps.
 
 \begin{algorithm}[H]
-  \caption{Simulated Annealing for Overlap Minimisation}
+  \caption{Simulated Annealing for Balanced-Overlap Refinement}
   \label{alg:sa}
   \KwInput{Initial collection $\mathcal{A}^{(0)}$ (greedy output),
            iteration count $N_\text{iter}$,
-           initial temperature $T_0$, cooling factor $\alpha \in (0,1)$.}
-  \KwOutput{Refined collection $\mathcal{A}^*$ with $\Omega(\mathcal{A}^*)
-            \le \Omega(\mathcal{A}^{(0)})$ (with high probability).}
+           initial temperature $T_0$ (on the scale of $g$-increments),
+           cooling factor $\alpha \in (0,1)$.}
+  \KwOutput{Refined collection $\mathcal{A}^*$ with $G(\mathcal{A}^*)
+            \le G(\mathcal{A}^{(0)})$, locally optimal under
+            single-element swaps.}
   \BlankLine
   $\mathcal{A} \leftarrow \mathcal{A}^{(0)}$;
   $\mathcal{A}^* \leftarrow \mathcal{A}$;
@@ -136,33 +147,40 @@ minimising the total pairwise overlap objective
     $A_i' \leftarrow (A_i \setminus \{A_i[j]\}) \cup \{x\}$\;
     \BlankLine
     $\delta \leftarrow
-      \sum_{\ell \ne i} |A_\ell \cap A_i'|
-      - \sum_{\ell \ne i} |A_\ell \cap A_i|$
-    \tcp*[r]{Efficient $O(nv)$ delta via indicator vectors}
+      \sum_{\ell \ne i} g\bigl(|A_\ell \cap A_i'|\bigr)
+      - \sum_{\ell \ne i} g\bigl(|A_\ell \cap A_i|\bigr)$
+    \tcp*[r]{$O(nv)$ delta via indicator vectors + table lookup}
     \BlankLine
     \If{$\delta < 0$ \textbf{or} $\mathrm{Uniform}(0,1) < e^{-\delta/T}$}{
       $A_i \leftarrow A_i'$;
       update $\bm{b}[A_i]$;
-      $\Omega \leftarrow \Omega + \delta$\;
-      \If{$\Omega < \Omega(\mathcal{A}^*)$}{
+      $G \leftarrow G + \delta$\;
+      \If{$G < G(\mathcal{A}^*)$}{
         $\mathcal{A}^* \leftarrow \mathcal{A}$\;
       }
     }
     $T \leftarrow \alpha \cdot T$\;
+  }
+  \BlankLine
+  \tcp{Quench: deterministic best-improvement descent}
+  \While{some single-element swap strictly decreases $G(\mathcal{A}^*)$}{
+    apply the swap with the largest decrease\;
   }
   \Return $\mathcal{A}^*$\;
 \end{algorithm}
 
 \begin{remark}[Efficient delta computation]
   \label{rem:efficient-delta}
-  The overlap increment $\delta$ in Algorithm~\ref{alg:sa} is computed in
-  $O(nv)$ time using boolean indicator vectors $\bm{b}[A_i] \in \{0,1\}^v$,
-  maintained incrementally: $\sum_{\ell \ne i} |A_\ell \cap A_i'| =
-  \sum_{\ell \ne i} \langle \bm{b}[A_\ell], \bm{b}[A_i']\rangle$.
-  Only the row corresponding to the modified ticket needs updating,
-  reducing the per-iteration cost from $O(n^2 v)$ to $O(nv)$.
-  Incremental evaluation of this kind is standard practice in local-search
-  implementations; see \citet{Talbi2009}, Section~2.1.4.
+  The increment $\delta$ in Algorithm~\ref{alg:sa} is computed in $O(nv)$
+  time using boolean indicator vectors $\bm{b}[A_i] \in \{0,1\}^v$,
+  maintained incrementally: the overlaps $|A_\ell \cap A_i'| =
+  \langle \bm{b}[A_\ell], \bm{b}[A_i']\rangle$ change only in the row of
+  the modified ticket, and $g$ is a table lookup.  This reduces the
+  per-iteration cost from $O(n^2 v)$ to $O(nv)$.  The quench evaluates all
+  $k(v-k)$ candidate swaps of a ticket simultaneously by vectorised table
+  lookups at cost $O(n k (v-k))$ per ticket sweep.  Incremental evaluation
+  of this kind is standard practice in local-search implementations; see
+  \citet{Talbi2009}, Section~2.1.4.
 \end{remark}
 
 \subsection{Complexity analysis}
@@ -170,26 +188,35 @@ minimising the total pairwise overlap objective
 
 \begin{proposition}[Algorithm complexities]
   \label{prop:complexity}
-  With pool size $M = O(nk)$ and $N_\mathrm{iter}$ SA iterations,
-  pool generation costs $O(Mv\log v)$, greedy selection costs
-  $O(n \cdot M \cdot v)$ \citep{Johnson1974}, and each SA run costs
-  $O(N_\mathrm{iter} \cdot n \cdot v)$ (Remark~\ref{rem:efficient-delta}).
-  For the Lotof\'{a}cil with $v=25$, $k=15$, $n \le 100$, $M=500$,
-  $N_\mathrm{iter}=2000$, the total cost per run is $O(10^6)$ operations,
-  completing in under one second on modern hardware.
-  The complexity is linear in $n$ and constant in $v$ for fixed $v=25$,
-  so the algorithms scale without difficulty to large budgets.
+  With pool size $M = O(nk)$ and $N_\mathrm{iter}$ SA iterations, pool
+  generation costs $O(Mv\log v)$, greedy selection costs
+  $O(n \cdot M \cdot v)$, each SA run costs
+  $O(N_\mathrm{iter} \cdot n \cdot v)$, and each quench sweep costs
+  $O(n^2 k(v-k))$ (Remark~\ref{rem:efficient-delta}).  For the
+  Lotof\'{a}cil with $v=25$, $k=15$, $n \le 100$, $M \le 2000$,
+  $N_\mathrm{iter}=2000$, a full greedy+SA run completes in well under one
+  second on modern hardware; the complete benchmark of
+  Section~\ref{sec:empirical} (hundreds of runs, $50{,}000$ Monte Carlo
+  draws each) runs in about two minutes.
 \end{proposition}
 
-\begin{remark}[NP-hardness does not apply here]
+\begin{remark}[On optimality]
   The maximum-coverage problem on a general set system is NP-hard
-  \cite{Feige1998}.  For our specific structure, however, the universe has
-  fixed size $v=25$, so exhaustive enumeration over $\binom{v}{k}^n$ is
-  polynomial in $n$ for fixed $v$.
-  The greedy approximation is used for speed, not necessity.  In the
-  Lotofácil instance, the greedy solution is very close to optimal:
-  full coverage of $[25]$ is achievable with $n = 2$ tickets (since
-  $2 \times (k - m^*) = 2 \times 10 = 20 > v - k = 10$), so for $n \ge 2$
-  the greedy always achieves $|\bigcup A_i| = v = 25$, and the SA's role
-  is purely to minimise $\Omega$ within the set of maximum-coverage solutions.
+  \cite{Feige1998}, and exact global optimisation of $\Pwin$ over
+  $\binom{25}{15}^n$ is out of reach for general $n$: the search space
+  grows exponentially with $n$.  Two structural facts nevertheless anchor
+  the heuristic.  First, full coverage of $[25]$ is achievable with two
+  tickets ($2k - m^* = 25$), so for $n \ge 2$ every greedy run attains
+  $|\bigcup A_i| = 25$ and the interesting optimisation happens entirely in
+  the refinement stage, which minimises $G$ within maximum-coverage
+  collections.  Second, for $3 \le n \le 6$ the enumerations of
+  Theorems~\ref{thm:three-optimal} and~\ref{thm:certified-optima} certify the
+  global optima, and greedy+SA attains them
+  (Section~\ref{sec:empirical}), though for $n = 4$ and $n = 6$ only in a
+  minority of independent runs, so a multi-start wrapper is advisable;
+  for larger $n$ the algorithm reproduces
+  the balanced profiles that the degree bound
+  (Proposition~\ref{prop:degree-bound}) singles out, e.g.\ mean pairwise
+  overlap exactly $75/10 = 7.5$ at $n=5$ and $375/45 = 8.\overline{3}$ at
+  $n=10$.
 \end{remark}

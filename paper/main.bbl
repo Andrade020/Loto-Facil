@@ -1,9 +1,15 @@
-\begin{thebibliography}{11}
+\begin{thebibliography}{13}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[{Caixa Econ\^{o}mica Federal}(2024)]{CEF2024}
+{Caixa Econ\^{o}mica Federal}.
+\newblock Lotof\'{a}cil.
+\newblock \url{https://loterias.caixa.gov.br/Paginas/Lotofacil.aspx}, 2024.
+\newblock Official rules and prize structure. Accessed May 2024.
 
 \bibitem[Cohen(1988)]{Cohen1988}
 Jacob Cohen.
@@ -79,5 +85,12 @@ J.~Sch{\"o}nheim.
 \newblock \emph{Pacific Journal of Mathematics}, 14\penalty0 (4):\penalty0
   1405--1411, 1964.
 \newblock URL \url{https://projecteuclid.org/euclid.pjm/1103033815}.
+
+\bibitem[Talbi(2009)]{Talbi2009}
+El-Ghazali Talbi.
+\newblock \emph{Metaheuristics: From Design to Implementation}.
+\newblock Wiley Series in Discrete Mathematics and Optimization. John Wiley \&
+  Sons, 2009.
+\newblock ISBN 978-0-470-27858-1.
 
 \end{thebibliography}

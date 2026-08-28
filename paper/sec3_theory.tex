@@ -1,12 +1,18 @@
 %% sec3_theory.tex -- Section 3: Overlap Monotonicity Theory
 
-\section{Overlap Monotonicity and Degenerate Cases}
+\section{Overlap Monotonicity and Exact Optima}
 \label{sec:theory}
 
 We begin with three limiting cases that admit exact, closed-form results.
-The main two-ticket monotonicity theorem follows, with a numerical
-verification for the Lotof\'{a}cil.  The final subsection discusses the
-extension to $n \ge 3$ via a conjecture supported by simulation.
+The main two-ticket monotonicity theorem follows, proved for every prize
+threshold $t$ by a measure-preserving swap coupling, together with an exact
+formula for the increment.  The final subsection develops the theory for
+$n \ge 3$: an exact decomposition for three tickets, a degree-counting
+feasibility bound, the exact optimum for three Lotof\'{a}cil tickets, and a
+complete resolution of the monotonicity question --- naive coordinatewise
+monotonicity fails already at $n = 3$, monotonicity of the
+\emph{best-realisation} value function holds at $n = 3$ (we prove it) and
+fails from $n = 4$ onwards (we exhibit counterexamples).
 
 \begin{proposition}[Single-ticket trivial case]
   \label{prop:n1}
@@ -39,35 +45,39 @@ extension to $n \ge 3$ via a conjecture supported by simulation.
 
 \begin{proposition}[Large-$n$ saturation]
   \label{prop:saturation}
-  For any fixed $(v,k,t)$ and any sequence of collections
-  $\mathcal{A}^{(n)}$ with $|\mathcal{A}^{(n)}| = n$,
-  \[
-    \lim_{n \to \infty} \Pwin(\mathcal{A}^{(n)}) = 1.
-  \]
-  Moreover, $\Pwin(\mathcal{A}^{(n)}) \ge 1 - (1-\pone)^n$ for any
-  strategy, with the lower bound also tending to 1.
+  Fix $(v,k,t)$ with $1 \le t \le k \le v$.
+  \begin{itemize}
+    \item[(i)] For every $n \ge \Cvkt$ there exist collections of $n$
+      tickets with $\Pwin = 1$; consequently
+      $\max_{|\mathcal{A}| = n} \Pwin(\mathcal{A}) = 1$ for all such $n$.
+    \item[(ii)] For i.i.d.\ uniform random collections,
+      $E[\Pwin(\mathcal{A}^{(n)})] = 1 - (1-\pone)^n \to 1$ as
+      $n \to \infty$ (Proposition~\ref{prop:random-benchmark}).
+  \end{itemize}
+  Convergence does \emph{not} hold for every sequence of collections: by
+  Proposition~\ref{prop:identical}, identical-ticket collections have
+  $\Pwin = \pone$ for every $n$.
 \end{proposition}
 
 \begin{proof}
-  The complement event $\bigcap_{i=1}^{n} \{|A_i \cap R| < t\}$ has
-  probability at most $(1-\pone)^n$ (by independence of identical
-  distributions under the worst case of identical tickets).  Wait—actually,
-  for general (not necessarily independent) collections, we use the
-  following: letting $B_i = \{|A_i \cap R| < t\}$, we have by inclusion-exclusion
-  and the union bound
-  $P(\bigcap B_i) \le P(B_1) = 1 - \pone < 1$.  More precisely, for any
-  $\epsilon > 0$ there exists $n_0$ such that for $n \ge n_0$ there exist
-  $n$ tickets covering all $\binom{v}{t}$ possible $t$-subsets (since
-  $\Cvkt < \infty$), which gives $\Pwin = 1$.  Hence $\Pwin \to 1$.
+  (i) Let $\mathcal{C}$ be a covering design witnessing $\Cvkt$: every
+  $t$-subset of $[v]$ is contained in at least one block of $\mathcal{C}$.
+  For any draw $R$, pick a $t$-subset $T \subseteq R$ (possible since
+  $t \le k$); the block $A \in \mathcal{C}$ with $T \subseteq A$ satisfies
+  $|A \cap R| \ge |T| = t$.  Hence $\Pwin(\mathcal{C}) = 1$, and
+  $\mathcal{C}$ padded with arbitrary further tickets works for every
+  $n \ge \Cvkt$.  (ii) is immediate from
+  Proposition~\ref{prop:random-benchmark} and $\pone > 0$.
 \end{proof}
 
 \begin{remark}[Saturation is unavoidable]
-  The saturation in Proposition~\ref{prop:saturation} is a fundamental
-  feature of the problem: once $n \ge \Cvkt$, even a suboptimal strategy
-  achieves $\Pwin = 1$.  Our empirical study (Section~\ref{sec:empirical})
-  identifies the \emph{practical} saturation threshold $n^* \approx 50$
-  for the Lotofácil, beyond which $\Pwin > 0.996$ for both optimised and
-  random strategies.
+  Saturation makes the optimisation problem interesting only for moderate
+  $n$: once $n \ge \Cvkt$ an optimal strategy guarantees a prize with
+  certainty, and even random strategies approach $\Pwin = 1$ exponentially
+  fast in expectation.  Our empirical study (Section~\ref{sec:empirical})
+  identifies the \emph{practical} saturation range of the Lotofácil: the
+  optimised strategy exceeds $\Pwin = 0.999$ from $n \approx 40$, the
+  random baseline only from $n \approx 75$.
 \end{remark}
 
 \subsection{The two-ticket monotonicity theorem}
@@ -87,8 +97,9 @@ with two tickets $A_1, A_2$ with overlap $m = |A_1 \cap A_2|$.
     \;=\; P(|A_1 \cap R| \ge t \;\text{ or }\; |A_2 \cap R| \ge t)
   \]
   is non-increasing as a function of $m = |A_1 \cap A_2|$, ranging over
-  $m^* = \max(0, 2k-v)$ to $m = k$ (the maximum, attained when $A_1 = A_2$).
-  Consequently, $\Pwin(A_1, A_2)$ is uniquely maximised at $m = m^*$.
+  $m^* = \max(0, 2k-v)$ to $m = k$.  Consequently, $\Pwin(A_1, A_2)$ is
+  maximised at $m = m^*$ (not necessarily uniquely; see
+  Corollary~\ref{cor:min-overlap-optimal}).
 \end{theorem}
 
 \begin{proof}
@@ -98,86 +109,90 @@ with two tickets $A_1, A_2$ with overlap $m = |A_1 \cap A_2|$.
     \Pwin(A_1, A_2) \;=\; 2\pone - g(m),
   \end{equation}
   where $g(m) = P(|A_1 \cap R| \ge t \text{ and } |A_2 \cap R| \ge t)$
-  is the \emph{joint-win probability}.  Since $\pone$ does not depend on $m$,
-  it suffices to show that $g(m)$ is non-decreasing in $m$.
+  is the \emph{joint-win probability}.  Since $\pone$ does not depend on
+  $m$, it suffices to show that $g(m+1) \ge g(m)$ for each
+  $m \in \{m^*, \ldots, k-1\}$.
 
-  At the upper extreme $m = k$ (identical tickets, $A_1 = A_2$), we have
-  $g(k) = P(|A_1 \cap R| \ge t) = p(v,k,t)$, so $P_{\mathrm{win}} = p(v,k,t)$.
-  At the lower extreme $m = m^*$, for non-trivial parameters,
-  $g(m^*) < p(v,k,t)$, so $P_{\mathrm{win}}|_{m=m^*} = 2p(v,k,t) - g(m^*) > p(v,k,t)$.
-  This establishes the comparison at the two extremes.
-
-  It remains to show $g(m+1) \ge g(m)$ for each $m \in \{m^*, \ldots, k-1\}$.
-
-  Fix tickets $A_1, A_2$ with overlap $m$.  Choose any $x \in A_1 \setminus
-  A_2$ and $y \in A_2 \setminus A_1$, and define the modified ticket
-  $A_2' = (A_2 \setminus \{y\}) \cup \{x\}$.  Then $|A_2'| = k$ and
-  $|A_1 \cap A_2'| = m + 1$.  We compare
-  \[
-    g(m+1) = P(|A_1 \cap R| \ge t \text{ and } |A_2' \cap R| \ge t)
-  \]
-  with $g(m)$.  Setting $W = |A_2 \cap R|$, $I_x = \ind{x \in R}$,
-  $I_y = \ind{y \in R}$, we have $|A_2' \cap R| = W + I_x - I_y$, so
-  \begin{align}
-    g(m+1) - g(m)
-    &= P(|A_1 \cap R| \ge t,\, W + I_x - I_y \ge t)
-       - P(|A_1 \cap R| \ge t,\, W \ge t) \notag \\
-    &= E\!\left[\ind{|A_1 \cap R| \ge t}
-         \left(\ind{W + I_x - I_y \ge t} - \ind{W \ge t}\right)\right].
-         \label{eq:delta}
-  \end{align}
-
-  We decompose by the values of $(I_x, I_y)$.  Since $x \notin A_2$ and
-  $y \in A_2$, the elements $x$ and $y$ are in different parts of the
-  canonical partition of $[v]$ relative to $(A_1, A_2)$, so the joint
-  event $(I_x = a, I_y = b)$ interacts with $W$ in a structured way.
-  Conditioning on $I_x$ and $I_y$:
-  \begin{align}
-    g(m+1) - g(m)
-    &= P(|A_1 \cap R| \ge t,\, W = t-1) \cdot P(I_x=1, I_y=0) \notag \\
-    &\quad - P(|A_1 \cap R| \ge t,\, W = t) \cdot P(I_x=0, I_y=1). \label{eq:delta2}
-  \end{align}
-  (The cases $I_x = I_y$ contribute zero to the difference, since
-  $\ind{W+0 \ge t} - \ind{W \ge t} = 0$.)
-
-  By symmetry of the uniform draw over $[v]$, $P(x \in R, y \notin R)
-  = P(x \notin R, y \in R) = k(v-k)/[v(v-1)]$.  Therefore
+  Fix tickets $A_1, A_2$ with overlap $m < k$.  Choose any
+  $x \in A_1 \setminus A_2$ and $y \in A_2 \setminus A_1$, and define the
+  modified ticket $A_2' = (A_2 \setminus \{y\}) \cup \{x\}$.  Then
+  $|A_2'| = k$ and $|A_1 \cap A_2'| = m + 1$.  Write $S = |A_1 \cap R|$,
+  $W = |A_2 \cap R|$, and note
+  $|A_2' \cap R| = W + \ind{x \in R} - \ind{y \in R}$, so that
   \begin{equation}
-    \label{eq:delta3}
+    \label{eq:delta}
     g(m+1) - g(m)
-    \;=\; \frac{k(v-k)}{v(v-1)}
-          \bigl[
-            P(|A_1 \cap R| \ge t,\, |A_2 \cap R| = t-1)
-            - P(|A_1 \cap R| \ge t,\, |A_2 \cap R| = t)
-          \bigr].
+    = E\!\left[\ind{S \ge t}
+       \left(\ind{W + \ind{x \in R} - \ind{y \in R} \ge t}
+           - \ind{W \ge t}\right)\right].
   \end{equation}
+  Decompose \eqref{eq:delta} according to the pair
+  $(\ind{x \in R}, \ind{y \in R})$.  When $\ind{x \in R} = \ind{y \in R}$
+  the two inner indicators coincide and the contribution vanishes.  On
+  $\{x \in R,\, y \notin R\}$ the score of $A_2'$ is $W + 1$, so the inner
+  difference is $\ind{W = t-1}$; on $\{x \notin R,\, y \in R\}$ it is
+  $W - 1$, so the difference is $-\ind{W = t}$.  Hence
+  \begin{align}
+    g(m+1) - g(m)
+    &= P(S \ge t,\, W = t-1,\, x \in R,\, y \notin R) \notag \\
+    &\qquad - P(S \ge t,\, W = t,\, x \notin R,\, y \in R).
+    \label{eq:delta2}
+  \end{align}
 
-  The sign of this expression is determined by the comparison of two joint
-  probabilities: the probability that $A_1$ wins while $A_2$ scores
-  exactly $t-1$ versus exactly $t$.
-
-  When $t > k/2$, the score $|A_i \cap R|$ lies in the upper tail of
-  the $\mathrm{Hyp}(v,k,k)$ distribution (mean $k^2/v$).  The mass function
-  $P(|A_2 \cap R| = j)$ is decreasing in $j$ for $j \ge t-1$.  Conditioning
-  on $E_1 = \{|A_1 \cap R| \ge t\}$ stochastically shifts the distribution of
-  $|A_2 \cap R|$ upward (because $E_1$ implies many elements of $S_0$ are
-  drawn, which inflates both scores), but the tail remains decreasing, so
-  $P(E_1, |A_2 \cap R| = t-1) \ge P(E_1, |A_2 \cap R| = t)$ and therefore
-  $g(m+1) - g(m) \ge 0$.
-
-  For $(v, k, t) = (25, 15, 11)$ we verify this numerically: Table~\ref{tab:delta-g}
-  reports $g(m)$ computed by exact enumeration for each $m \in \{5,\ldots,14\}$,
-  confirming $g(m+1) - g(m) > 0$ in every case.
+  Now consider the \emph{swap map}
+  $\varphi(R) = (R \setminus \{y\}) \cup \{x\}$, a bijection from
+  $\{R \in \binom{[v]}{k} : y \in R,\, x \notin R\}$ onto
+  $\{R \in \binom{[v]}{k}: x \in R,\, y \notin R\}$ that preserves the
+  uniform measure.  Because $x \in A_1 \setminus A_2$ and
+  $y \in A_2 \setminus A_1$, applying $\varphi$ increases $S$ by exactly
+  one and decreases $W$ by exactly one.  Therefore $\varphi$ maps the event
+  in the second term of \eqref{eq:delta2} bijectively onto
+  $\{S \ge t+1,\, W = t-1,\, x \in R,\, y \notin R\}$, and
+  \begin{align}
+    g(m+1) - g(m)
+    &= P(S \ge t,\, W = t-1,\, x \in R,\, y \notin R) \notag \\
+    &\qquad - P(S \ge t+1,\, W = t-1,\, x \in R,\, y \notin R) \notag \\
+    &= P(S = t,\, W = t-1,\, x \in R,\, y \notin R) \;\ge\; 0.
+    \label{eq:delta3}
+  \end{align}
+  This holds for every $t$ with $1 \le t \le k$, completing the proof.
 \end{proof}
+
+\begin{corollary}[Exact increment formula]
+  \label{cor:increment}
+  Expanding the probability in \eqref{eq:delta3} over the refined partition
+  of $[v]$ into $A_1 \cap A_2$, $(A_1 \setminus A_2)\setminus\{x\}$,
+  $\{x\}$, $(A_2 \setminus A_1)\setminus\{y\}$, $\{y\}$, and
+  $[v] \setminus (A_1 \cup A_2)$ yields the closed form
+  \begin{equation}
+    \label{eq:increment}
+    g(m+1) - g(m)
+    = \frac{1}{\binom{v}{k}} \sum_{j \ge 0}
+      \binom{m}{j} \binom{k-m-1}{\,t-1-j\,}^{\!2}\,
+      \binom{v-2k+m}{\,k+1-2t+j\,},
+  \end{equation}
+  with the convention that binomial coefficients with out-of-range
+  arguments vanish: the event in \eqref{eq:delta3} requires $j$ draw
+  elements in $A_1 \cap A_2$, the element $x$, exactly $t-1-j$ elements in
+  each of the two private regions, and the remaining $k+1-2t+j$ elements
+  outside $A_1 \cup A_2$.  In particular the increment vanishes exactly
+  when the index range of \eqref{eq:increment} is empty, and the values in
+  Table~\ref{tab:delta-g} are reproduced by \eqref{eq:increment}.
+\end{corollary}
 
 \begin{table}[ht]
   \centering
   \caption{Joint-win probability $g(m)$ and its increment for the Lotofácil
            $(v=25,\,k=15,\,t=11)$.  Values computed by exact enumeration of
-           the multivariate hypergeometric distribution.
-           $\Delta_g = g(m+1)-g(m) \ge 0$ confirms Theorem~\ref{thm:two-ticket-monotone}.
-           The remarkable fact $g(5)=g(6)=0$ (Proposition~\ref{prop:mutual-excl})
-           implies $\Pwin = 2p \approx 0.2118$ at minimum overlap.}
+           the multivariate hypergeometric distribution; the increments
+           $\Delta_g = g(m+1)-g(m)$ agree with the closed form
+           \eqref{eq:increment} and illustrate
+           Theorem~\ref{thm:two-ticket-monotone}.  Note that the increments
+           are themselves increasing ($g$ is convex on this range), which
+           drives the balanced-profile phenomenon of
+           Section~\ref{sec:general-n}.  The fact $g(5)=g(6)=0$
+           (Proposition~\ref{prop:mutual-excl}) implies
+           $\Pwin = 2p \approx 0.2118$ at both $m=5$ and $m=6$.}
   \label{tab:delta-g}
   \smallskip
   \resizebox{\linewidth}{!}{%
@@ -203,33 +218,41 @@ with two tickets $A_1, A_2$ with overlap $m = |A_1 \cap A_2|$.
    ${}^\dagger$ Winning events mutually exclusive (Proposition~\ref{prop:mutual-excl}).}
 \end{table}
 
-\begin{corollary}[Minimum-overlap maximises $\Pwin$ for $n=2$]
+\begin{corollary}[Minimum overlap is optimal for $n=2$]
   \label{cor:min-overlap-optimal}
   Among all collections $\{A_1, A_2\} \in \binom{[v]}{k}^2$, the joint
-  prize probability $\Pwin(A_1, A_2)$ is uniquely maximised when
-  $|A_1 \cap A_2| = m^* = \max(0, 2k-v)$.  The maximum value is
+  prize probability $\Pwin(A_1, A_2)$ is maximised when
+  $|A_1 \cap A_2| = m^* = \max(0, 2k-v)$, with maximum value
   \[
     \Pwin^* \;=\; 2\pone - g(m^*).
   \]
+  The maximiser need not be unique: $\Pwin(m) = \Pwin(m^*)$ for every $m$
+  such that all increments \eqref{eq:increment} between $m^*$ and $m$
+  vanish.  For the Lotofácil, $g(5) = g(6) = 0$
+  (Proposition~\ref{prop:mutual-excl}), so the maximum
+  $\Pwin = 2\pone \approx 0.2118$ is attained exactly at $m \in \{5, 6\}$
+  and $\Pwin$ decreases strictly from $m = 7$ onwards
+  (Table~\ref{tab:delta-g}).
 \end{corollary}
 
-\begin{proposition}[Mutual exclusivity at near-minimum overlap]
+\begin{proposition}[Mutual exclusivity below the overlap threshold]
   \label{prop:mutual-excl}
-  For the Lotofácil parameters $(v=25, k=15, t=11)$, the joint-win event
-  $\{|A_1 \cap R| \ge 11\} \cap \{|A_2 \cap R| \ge 11\}$ has probability
-  \emph{zero} whenever $|A_1 \cap A_2| \le 6$.  That is, at minimum
-  and near-minimum overlap, the two winning events are \emph{mutually exclusive},
-  and $\Pwin(A_1, A_2) = 2p \approx 0.2118$.
+  For any parameters $(v,k,t)$ and any two tickets with overlap
+  $m = |A_1 \cap A_2| \le 2t - k - 1$, the joint-win event
+  $\{|A_1 \cap R| \ge t\} \cap \{|A_2 \cap R| \ge t\}$ has probability
+  \emph{zero}: the two winning events are mutually exclusive and
+  $\Pwin(A_1, A_2) = 2\pone$ exactly.  For the Lotofácil
+  $(v,k,t)=(25,15,11)$ the threshold is $2t-k-1 = 6$: two tickets sharing
+  at most six numbers can never both win, and $\Pwin = 2p \approx 0.2118$.
 \end{proposition}
 
 \begin{proof}
-  Consider $m \le 6$, so $|S_0| \le 6$, $|S_1|=|S_2|=15-m \ge 9$,
-  $|S_3|=m-5 \le 1$.  For both tickets to win we need
-  $X_0 + X_1 \ge 11$ and $X_0 + X_2 \ge 11$.  Summing:
-  $2X_0 + X_1 + X_2 \ge 22$.  Since $X_0 + X_1 + X_2 + X_3 = 15$
-  and $X_3 \ge 0$, we have $X_1 + X_2 \le 15 - X_0$, giving
-  $2X_0 + 15 - X_0 \ge 22$, i.e.\ $X_0 \ge 7$.  But $X_0 \le |S_0| = m \le 6$,
-  a contradiction.  Hence no valid outcome exists and $g(m) = 0$.
+  In the canonical partition of Definition~\ref{def:partition}, both
+  tickets winning means $X_0 + X_1 \ge t$ and $X_0 + X_2 \ge t$.  Adding,
+  $2X_0 + X_1 + X_2 \ge 2t$.  Since $X_0 + X_1 + X_2 = k - X_3 \le k$,
+  this forces $X_0 \ge 2t - k + X_3 \ge 2t - k$.  But
+  $X_0 \le |S_0| = m \le 2t-k-1$, a contradiction.  Hence no outcome with
+  both tickets winning exists and $g(m) = 0$.
 \end{proof}
 
 \begin{remark}[Negative correlation is advantageous]
@@ -242,99 +265,478 @@ with two tickets $A_1, A_2$ with overlap $m = |A_1 \cap A_2|$.
   precisely what makes minimum-overlap collections effective.
 \end{remark}
 
-\subsection{General $n$: bounds and conjecture}
+\subsection{Three and more tickets: exact structure and the limits of
+            monotonicity}
 \label{sec:general-n}
 
-For $n \ge 3$ tickets, the analysis becomes significantly more complex:
-inclusion-exclusion introduces $2^n - 1$ terms, and the monotonicity of
-each cannot generally be established by a simple two-step coupling.
-We proceed by establishing an upper bound and a conjecture.
+For $n \ge 3$ tickets, inclusion--exclusion introduces higher-order joint
+probabilities, and two phenomena appear that the two-ticket analysis cannot
+see.  First, $\Pwin$ is no longer a function of the pairwise overlaps
+alone.  Second, the natural extension of
+Theorem~\ref{thm:two-ticket-monotone} --- ``decreasing any single pairwise
+overlap, all other pairs held fixed, cannot decrease $\Pwin$; hence the
+optimum has all pairwise overlaps equal to $m^*$'' --- is \emph{false},
+both because the all-$m^*$ profile is combinatorially infeasible for
+$n \ge 3$ and because coordinatewise monotonicity itself fails between
+realisable collections.  This subsection establishes the complete
+picture: monotonicity survives at $n = 3$ at the level of best
+realisations (Theorem~\ref{thm:profile-monotone}) and fails from $n = 4$
+onwards (Example~\ref{ex:n4-counterexample}), while the design principle
+that emerges --- balanced profiles at the degree bound --- is what
+persists for every $n$.
 
-\begin{proposition}[Overlap-based upper bound on $1 - \Pwin$]
-  \label{prop:upper-bound}
-  For any collection $\mathcal{A} = (A_1, \ldots, A_n)$,
+Associate with a triple $(A_1,A_2,A_3)$ its \emph{intersection profile}:
+the pairwise overlaps $(m_{12}, m_{13}, m_{23})$ together with the triple
+intersection $c = |A_1 \cap A_2 \cap A_3|$.  The sizes of the eight Venn
+cells of the triple are determined by the profile, the distribution of the
+draw over the cells is multivariate hypergeometric, and $\Pwin$ depends on
+the collection only through the profile.
+
+\begin{proposition}[Exact three-ticket decomposition]
+  \label{prop:three-ticket}
+  For any triple of tickets,
   \[
-    1 - \Pwin(\mathcal{A})
-    \;\le\; (1-\pone)^n \cdot
-    \exp\!\left(
-      \frac{1}{\pone^2}
-      \sum_{i < j}
-      \mathrm{Cov}(\ind{E_i}, \ind{E_j})
-    \right),
+    \Pwin(A_1,A_2,A_3)
+    = 3\pone - \bigl[g(m_{12}) + g(m_{13}) + g(m_{23})\bigr] + g_3,
   \]
-  where $E_i = \{|A_i \cap R| \ge t\}$.  In particular, for collections
-  with $\mathrm{Cov}(\ind{E_i},\ind{E_j}) \le 0$ for all pairs, the
-  complement probability is bounded above by $(1-\pone)^n$, matching
-  the independence upper bound $U_n$.
+  where $g_3 = P(\text{all three tickets win})$.  Moreover, $g_3 = 0$
+  whenever $\min_{i<j} m_{ij} \le 2t-k-1$.  In general $g_3$ depends on
+  the triple intersection $c$, not only on the pairwise overlaps.
 \end{proposition}
 
 \begin{proof}
-  Standard second-moment method for indicators; the indicator covariance
-  satisfies $\mathrm{Cov}(\ind{E_i},\ind{E_j}) = g(m_{ij}) - \pone^2$,
-  which by Theorem~\ref{thm:two-ticket-monotone} is non-decreasing in
-  $m_{ij}$.  An expansion of $\log P(\bigcap E_i^c)$ via cumulants and
-  truncation at second order gives the stated inequality.
+  The identity is inclusion--exclusion for three events, with the
+  pairwise terms $P(E_i \cap E_j) = g(m_{ij})$ from \eqref{eq:ie}.  For
+  the second claim, the triple-win event is contained in each pairwise
+  joint-win event, and the latter has probability zero when
+  $m_{ij} \le 2t-k-1$ (Proposition~\ref{prop:mutual-excl}).
 \end{proof}
 
-The simulation evidence from Section~\ref{sec:empirical} strongly
-supports the following conjecture, which we have been unable to prove
-in full generality.
+\begin{example}[Pairwise overlaps do not determine $\Pwin$]
+  \label{ex:ill-posed}
+  For the Lotofácil profile $(m_{12},m_{13},m_{23}) = (14,14,14)$ the
+  triple intersection can be $c = 13$ or $c = 14$, and exact enumeration
+  gives $\Pwin = 0.172035$ and $\Pwin = 0.165911$, respectively.  Among
+  the $1{,}250$ feasible Lotofácil triple profiles, $235$
+  pairwise-overlap vectors admit more than one value of $\Pwin$.  The map
+  $(m_{12},m_{13},m_{23}) \mapsto \Pwin$ is therefore not well defined for
+  $n \ge 3$: any monotonicity statement must either fix the full
+  intersection profile or quantify over realisations.
+\end{example}
 
-\begin{conjecture}[General overlap monotonicity]
-  \label{conj:general}
-  For any integers $n \ge 2$, $v \ge k \ge t \ge 1$, and any pair of indices
-  $1 \le i < j \le n$, the function $m_{ij} \mapsto \Pwin(\mathcal{A})$
-  is non-increasing in $m_{ij} = |A_i \cap A_j|$, all other pairs being held
-  fixed.  Consequently, $\Pwin(\mathcal{A})$ is maximised when all pairwise
-  overlaps equal $m^*$.
-\end{conjecture}
+The second obstruction is combinatorial.
 
-\begin{remark}
-  Conjecture~\ref{conj:general} would follow from a monotone-coupling result
-  for the multivariate hypergeometric distribution analogous to the FKG
-  inequality for product measures.  Specifically, one would need to show
-  that for $n \ge 3$, the increment $g_\text{joint}(m+1) - g_\text{joint}(m)$
-  is non-negative, where $g_\text{joint}$ is the probability that all $n$
-  tickets fail simultaneously.  This appears to require technical results
-  on the correlation structure of multi-way hypergeometric overlap that we
-  leave for future work.
-\end{remark}
+\begin{proposition}[Degree-counting lower bound on total overlap]
+  \label{prop:degree-bound}
+  For a collection of $n$ tickets let $d_x = \#\{i : x \in A_i\}$ for
+  $x \in [v]$.  Then
+  \[
+    \Omega(\mathcal{A}) \;=\; \sum_{i<j} m_{ij}
+    \;=\; \sum_{x \in [v]} \binom{d_x}{2}
+    \;\ge\; r \binom{q+1}{2} + (v - r)\binom{q}{2},
+  \]
+  where $nk = qv + r$ with $0 \le r < v$.  For the Lotofácil and $n = 3$
+  this gives $\Omega \ge 20 > 15 = \binom{3}{2}\, m^*$: \emph{no} three
+  tickets have all pairwise overlaps equal to $m^* = 5$, and at least one
+  pair must share at least $\lceil 20/3 \rceil = 7$ numbers.
+\end{proposition}
 
-Table~\ref{tab:empirical-monotone} presents empirical evidence for the
-conjecture: for each value of $n$ tested in our Lotofácil study, the
-minimum-overlap collection (produced by our greedy algorithm) achieves
-a higher $\Pwin$ than a random collection, and this advantage persists
-and grows with $n$ up to the saturation threshold.
+\begin{proof}
+  Both sides of the identity count incidences: an element $x$ contained in
+  $d_x$ tickets contributes $\binom{d_x}{2}$ to the sum of pairwise
+  overlaps.  The lower bound is the minimum of $\sum_x \binom{d_x}{2}$
+  over integer degree sequences with $\sum_x d_x = nk$, attained by the
+  most balanced sequence ($r$ elements of degree $q+1$, $v-r$ of degree
+  $q$), by convexity of $u \mapsto \binom{u}{2}$.
+\end{proof}
+
+Combining the decomposition with the feasibility bound yields the exact
+optimum for three Lotofácil tickets --- and it is \emph{not} a
+minimum-overlap configuration.
+
+\begin{theorem}[Exact optimum for three Lotofácil tickets]
+  \label{thm:three-optimal}
+  For $(v,k,t) = (25,15,11)$ and $n = 3$,
+  \[
+    \max_{\mathcal{A}} \Pwin(\mathcal{A})
+    \;=\; 3\pone - 2\,g(7)
+    \;=\; \frac{1{,}028{,}578}{3{,}268{,}760}
+    \;\approx\; 0.314669,
+  \]
+  attained exactly by the collections with pairwise overlap profile
+  $\{7,7,6\}$, for which the triple intersection is forced to be empty.
+  The optimal profile is \emph{balanced}: it contains no pair at the
+  minimum overlap $m^* = 5$.  Indeed, any collection in which some pair
+  attains $m^*$ satisfies
+  $\Pwin \le 3\pone - g(7) - g(8) \approx 0.311296$, strictly below the
+  optimum.
+\end{theorem}
+
+\begin{proof}
+  By exhaustive enumeration of all $1{,}250$ feasible intersection
+  profiles, each evaluated exactly via
+  Proposition~\ref{prop:three-ticket}, with $g_3$ computed by enumeration
+  of the multivariate hypergeometric distribution over the eight Venn
+  cells (verification scripts in the supplementary material).  The
+  mechanism is transparent.  Profiles with $\Omega = 20$ attain the
+  degree bound, and each of them contains a pair with overlap at most
+  $6$, forcing $g_3 = 0$ and
+  $\Pwin = 3\pone - \sum_{i<j} g(m_{ij})$.  Since $g$ vanishes up to
+  overlap $6$ and its increments are increasing beyond it
+  (Table~\ref{tab:delta-g}), the loss $\sum_{i<j} g(m_{ij})$ is minimised
+  by the most balanced profile $\{7,7,6\}$, which pays only $2g(7)
+  \approx 0.0030$; the extreme profile $\{5,5,10\}$ pays $g(10) \approx
+  0.0167$.  Profiles with $\Omega \ge 21$ cannot compensate through
+  $g_3$, as the enumeration confirms.
+\end{proof}
 
 \begin{table}[ht]
   \centering
-  \caption{Empirical support for Conjecture~\ref{conj:general}: mean
-  $\Pwin$ and mean total overlap $\Omega$ for random vs.\ optimised
-  collections.  Results from 30--50 independent trials
-  (Section~\ref{sec:empirical}).  All differences are statistically
-  significant at $p < 10^{-3}$.}
-  \label{tab:empirical-monotone}
+  \caption{Exact $\Pwin$ for representative three-ticket intersection
+    profiles of the Lotofácil (Proposition~\ref{prop:three-ticket}).
+    $\Omega = \sum_{i<j} m_{ij}$; $c$ = triple intersection (a dash means
+    every admissible $c$ gives the same $\Pwin$).  The balanced profile
+    $\{7,7,6\}$ is the global optimum
+    (Theorem~\ref{thm:three-optimal}); profiles containing a
+    minimum-overlap pair are strictly suboptimal.  For comparison, random
+    selection achieves $U_3 = 0.285217$ in expectation
+    (Proposition~\ref{prop:random-benchmark}).}
+  \label{tab:three-profiles}
   \smallskip
-  \begin{tabular}{@{}crrrrrr@{}}
+  \begin{tabular}{@{}lccc l@{}}
     \toprule
-    & \multicolumn{2}{c}{Random} & \multicolumn{2}{c}{Greedy}
-    & & \\
-    \cmidrule(lr){2-3}\cmidrule(lr){4-5}
-    $n$ & $\bar{P}_{\mathrm{win}}$ & $\bar{\Omega}$
-        & $\bar{P}_{\mathrm{win}}$ & $\bar{\Omega}$
-        & Gain (pp) & $d$ \\
+    $(m_{12},m_{13},m_{23})$ & $c$ & $\Omega$ & $\Pwin$ (exact) & \\
     \midrule
-    1  & 0.1061 & 0 & 0.1057 & 0 & $-0.0$  & n/a \\
-    2  & 0.1997 & * & 0.2117 & * & $+6.2$  & 1.18 \\
-    3  & 0.2878 & * & 0.3103 & * & $+8.1$  & 1.88 \\
-    5  & 0.4285 & * & 0.4749 & * & $+11.0$ & 2.64 \\
-    7  & 0.5463 & * & 0.6015 & * & $+10.3$ & 3.50 \\
-    10 & 0.6820 & * & 0.7378 & * & $+8.3$  & 2.50 \\
-    15 & 0.8150 & * & 0.8700 & * & $+7.0$  & 2.66 \\
-    20 & 0.8965 & * & 0.9342 & * & $+4.4$  & 3.23 \\
+    $(7,7,6)$   & 0   & 20 & $0.314669$ & global optimum \\
+    $(7,7,7)$   & --- & 21 & $0.313170$ & \\
+    $(6,6,8)$   & 0   & 20 & $0.312795$ & \\
+    $(5,7,8)$   & 0   & 20 & $0.311296$ & best with a pair at $m^*$ \\
+    $(5,6,9)$   & 0   & 20 & $0.307724$ & \\
+    $(5,5,10)$  & 0   & 20 & $0.300994$ & both pairs at $m^*$ \\
+    \midrule
+    random (mean) & --- & --- & $0.285217$ & $= U_3$ \\
     \bottomrule
-  \end{tabular}\\[2pt]
-  {\footnotesize $n=1$: no gain by Proposition~\ref{prop:n1};
-  $d$: Cohen's $d$ effect size.
-  *~Overlap figures in Table~\ref{tab:pwin-full}.}
+  \end{tabular}
 \end{table}
+
+The same certification strategy extends to larger collections via a
+branch-and-bound over profiles.
+
+\begin{theorem}[Exact optima for four, five and six Lotofácil tickets;
+                computer-assisted]
+  \label{thm:certified-optima}
+  For $(v,k,t) = (25,15,11)$ and $n \in \{4,5,6\}$, the maximum of
+  $\Pwin$ over all collections of $n$ tickets is the value listed in
+  Table~\ref{tab:certified-optima}.  In each case the optimal pairwise
+  overlap profile is unique up to relabelling of the tickets, is
+  \emph{balanced}, attains the degree bound of
+  Proposition~\ref{prop:degree-bound} with equality, and contains no pair
+  at the minimum overlap $m^* = 5$.
+\end{theorem}
+
+\begin{table}[ht]
+  \centering
+  \caption{Certified global optima for the Lotof\'{a}cil.  $\Omega =
+    \sum_{i<j} m_{ij}$ equals the degree bound of
+    Proposition~\ref{prop:degree-bound} in every case.  Profiles are
+    written as multisets of the $\binom{n}{2}$ pairwise overlaps; the
+    graph formed by the pairs at overlap $8$ is indicated in brackets.
+    The last column is the absolute gain over the independence benchmark
+    $U_n$, which uncoordinated random play attains in expectation
+    (Proposition~\ref{prop:random-benchmark}).}
+  \label{tab:certified-optima}
+  \smallskip
+  \begin{tabular}{@{}c c l r@{\,}l c c@{}}
+    \toprule
+    $n$ & $\Omega$ & optimal profile
+        & \multicolumn{2}{c}{$\max \Pwin$ (exact)} & $U_n$ & gain \\
+    \midrule
+    $3$ & $20$  & $\{7,7,6\}$
+        & $1{,}028{,}578/3{,}268{,}760$ & $\approx 0.314669$
+        & $0.285217$ & $+2.9$ pp \\
+    $4$ & $45$  & $\{8^3, 7^3\}$ [triangle]
+        & $1{,}322{,}189/3{,}268{,}760$ & $\approx 0.404493$
+        & $0.360905$ & $+4.4$ pp \\
+    $5$ & $75$  & $\{8^5, 7^5\}$ [$5$-cycle]
+        & $1{,}626{,}630/3{,}268{,}760$ & $\approx 0.497629$
+        & $0.428578$ & $+6.9$ pp \\
+    $6$ & $120$ & $\{8^{15}\}$ [complete]
+        & $1{,}840{,}731/3{,}268{,}760$ & $\approx 0.563128$
+        & $0.489085$ & $+7.4$ pp \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{proof}
+  Write the inclusion--exclusion expansion
+  $\Pwin \binom{v}{k}
+   = \sum_{\emptyset \ne U \subseteq [n]} (-1)^{|U|+1} J(U)$,
+  where $J(U)$ counts the draws on which every ticket in $U$ wins.
+  Truncating after the third-order terms gives the Bonferroni upper bound
+  \begin{equation}
+    \label{eq:bonferroni-ub}
+    \Pwin \;\le\; n\pone - \sum_{\text{pairs}} g(m_{ij})
+      + \sum_{\text{triples}}
+        g_3^{\max}(m_{ab}, m_{ac}, m_{bc}),
+  \end{equation}
+  where $g_3^{\max}$ maximises the exact triple-win probability over the
+  triple intersection; the bound is legitimate because each embedded
+  triple is standalone-feasible.  A depth-first search over the profiles
+  in $\{5,\ldots,15\}^{\binom{n}{2}}$ with
+  $\sum_{i<j} m_{ij} \ge \Omega_{\min}$
+  (Proposition~\ref{prop:degree-bound}, with $\Omega_{\min} = 45, 75, 120$
+  for $n = 4,5,6$), pruned by \eqref{eq:bonferroni-ub} against the
+  incumbent value, leaves $1$, $7$ and $1{,}119$ profiles up to
+  relabelling respectively, having visited $2.6 \times 10^4$,
+  $1.9 \times 10^7$ and $2.8 \times 10^{11}$ nodes.  For each surviving
+  profile, every admissible intersection structure --- that is, every
+  assignment of the higher-order intersections $|A_{i_1} \cap \cdots \cap
+  A_{i_\ell}|$, $\ell \ge 3$, whose induced Venn cell sizes are all
+  non-negative, so that the structure is realisable --- is enumerated and
+  evaluated exactly, and the maximum equals the value in
+  Table~\ref{tab:certified-optima}, which is attained in each case by
+  collections that Algorithm~\ref{alg:sa} produces
+  (Section~\ref{sec:empirical}).  Every step uses exact
+  integer arithmetic; the certified optimal collection is cross-validated
+  independently by brute force over all $\binom{25}{15} = 3{,}268{,}760$
+  draws.  The searches take seconds for $n = 4, 5$ and $13.5$ hours on
+  ten cores for $n = 6$; the code is in the supplementary material.
+\end{proof}
+
+The certificates also describe the optimal collections, and the
+description degrades in an instructive way as $n$ grows.
+
+\begin{remark}[Structure of the certified optima]
+  \label{rem:optimal-structure}
+  At all four certified optima the inclusion--exclusion expansion
+  terminates after the third order:
+  \begin{equation}
+    \label{eq:opt-decomposition}
+    \Pwin
+    \;=\; n\pone - \sum_{i<j} g(m_{ij}) + \sum_{a<b<c} g_3(A_a,A_b,A_c),
+  \end{equation}
+  every fourth- and higher-order term being zero.  All the quantities
+  involved are integer multiples of $1/\binom{25}{15}$; we quote the
+  corresponding integers below.  In each case the degree sequence is
+  forced by Proposition~\ref{prop:degree-bound}: $(3^{10}, 2^{15})$ for
+  $n = 4$, $(3^{25})$ for $n = 5$ and $(4^{15}, 3^{10})$ for $n = 6$.
+  The optima then differ in how much third-order mass they can carry.
+  Write $T_{abc} = |A_a \cap A_b \cap A_c|$.  For $n = 4$ the unique
+  triple whose three pairwise overlaps equal $8$ has $T_{abc} = 4$ and
+  contributes $160$, the four-way intersection being empty; for $n = 5$
+  the five triples carrying two of the five $8$-overlaps have $T_{abc} =
+  3$ and contribute $25$ each, for a total of $125$, all higher
+  intersections being empty.  For $n = 6$, the identity $\sum_{a<b<c}
+  T_{abc} = \sum_x \binom{d_x}{3} = 70$ over the $20$ triples, together
+  with the values $0, 0, 125, 160$ of the triple-win count at
+  $m_{ab}=m_{ac}=m_{bc}=8$ and $T_{abc} = 1,2,3,4$, makes the third-order
+  sum maximal exactly when ten triples have $T_{abc} = 4$ and ten have
+  $T_{abc} = 3$, giving $2{,}850$.
+
+  A consequence is that optimality pins down the collection to different
+  degrees.  For $n = 4$ and $n = 5$ the optimal profile admits a
+  \emph{unique} admissible intersection structure, so the certificate
+  determines the optimal collection completely up to relabelling the
+  tickets and permuting $[v]$.  For $n = 6$ the profile $\{8^{15}\}$ is
+  still uniquely optimal, but exactly $954$ admissible intersection
+  structures attain the maximum, since only the \emph{counts} of triples
+  at $T = 3$ and $T = 4$ enter \eqref{eq:opt-decomposition}, not their
+  arrangement.  Beyond $n = 5$, therefore, it is the overlap profile ---
+  not the full intersection pattern --- that optimality determines.
+\end{remark}
+
+We now show that the naive coordinatewise-monotonicity extension fails
+outright, even in the regime $t > k/2$ of interest here.
+
+\begin{example}[Coordinatewise monotonicity fails for $n = 3$]
+  \label{ex:counterexample}
+  Let $(v,k,t) = (11,7,4)$, so $m^* = 3$ and $t > k/2$.  Consider the two
+  collections
+  \begin{align*}
+    \mathcal{A}:\quad
+      & A_1 = \{1,2,3,4,5\} \cup \{6,7\}, \quad
+        A_2 = \{1,2,3,4,5\} \cup \{8,9\}, \\
+      & A_3 = \{1,2,3,4,5\} \cup \{10,11\}; \\[2pt]
+    \mathcal{B}:\quad
+      & B_1 = \{1,2,3,4,5,6,7\}, \quad
+        B_2 = \{1,2,3,4,5,6,8\}, \quad
+        B_3 = \{1,2,3,4,7,8,9\}.
+  \end{align*}
+  $\mathcal{A}$ has pairwise overlaps $(5,5,5)$ and triple intersection
+  $5$; $\mathcal{B}$ has overlaps $(6,5,5)$ and triple intersection $4$:
+  the overlap $m_{12}$ \emph{increased} by one while $m_{13} = m_{23} = 5$
+  are unchanged.  Enumerating all $\binom{11}{7} = 330$ draws,
+  \[
+    \Pwin(\mathcal{A}) = \tfrac{325}{330}
+    \;<\; \tfrac{329}{330} = \Pwin(\mathcal{B}).
+  \]
+  Increasing a pairwise overlap strictly increased the joint prize
+  probability.  The explanation lies in the third-order structure that
+  Example~\ref{ex:ill-posed} shows to matter: the trade was one unit of
+  pairwise overlap for one unit of triple intersection, and the latter is
+  more damaging.  Exhaustive search finds analogous strict counterexamples
+  in six parameter families $(v,k,t)$ with $v \le 11$.
+\end{example}
+
+For the Lotofácil parameters themselves no such counterexample exists at
+$n = 3$: over all $1{,}250$ feasible profiles there is no pair of
+collections whose overlap vectors differ by $+1$ in one coordinate and
+whose $\Pwin$ values are ordered the wrong way.  This motivates studying
+monotonicity at the level of \emph{best realisations}: for a feasible
+pairwise-overlap vector $M = (m_{ij})_{1 \le i < j \le n}$ define
+\[
+  F(M) \;=\; \max\bigl\{\Pwin(\mathcal{A}) :
+    \mathcal{A} \in \tbinom{[v]}{k}^n \text{ realises } M\bigr\}.
+\]
+For $n = 3$ this restores the monotone picture completely, and the proof
+is a two-step argument built on a generalisation of the swap coupling of
+Theorem~\ref{thm:two-ticket-monotone}.
+
+\begin{lemma}[Pattern-preserving swap monotonicity]
+  \label{lem:pattern-swap}
+  Let $n \ge 2$ and $A_1, \ldots, A_n \in \binom{[v]}{k}$.  Suppose
+  $x \in A_1 \setminus A_2$ and $y \in A_2 \setminus A_1$ satisfy
+  $\ind{x \in A_j} = \ind{y \in A_j}$ for every $j \ge 3$, and set
+  $A_2' = (A_2 \setminus \{y\}) \cup \{x\}$, so that
+  $|A_1 \cap A_2'| = |A_1 \cap A_2| + 1$ while every other pairwise
+  overlap is unchanged.  Writing $S_j = |A_j \cap R|$ and
+  $W = |A_2 \cap R|$,
+  \begin{align*}
+    &\Pwin(A_1, A_2', A_3, \ldots, A_n)
+      - \Pwin(A_1, A_2, A_3, \ldots, A_n) \\
+    &\qquad = -\,P\bigl(S_1 = t,\; W = t-1,\;
+        S_j \le t-1 \;\forall j \ge 3,\;
+        x \in R,\; y \notin R\bigr)
+      \;\le\; 0.
+  \end{align*}
+\end{lemma}
+
+\begin{proof}
+  Repeat the proof of Theorem~\ref{thm:two-ticket-monotone} with the
+  failure event $\bigcap_{j \ne 2}\{S_j < t\}$ carried along.
+  Decomposing by $(\ind{x \in R}, \ind{y \in R})$, the equal cases cancel
+  and
+  \[
+    P(\text{all fail w.r.t.\ } A_2') - P(\text{all fail w.r.t.\ } A_2)
+    = P\bigl(D,\, W = t\bigr) - P\bigl(D',\, W = t-1\bigr),
+  \]
+  where $D = \{S_1 < t,\, S_j < t \;\forall j \ge 3,\, x \notin R,\,
+  y \in R\}$ and $D' = \{S_1 < t,\, S_j < t \;\forall j \ge 3,\,
+  x \in R,\, y \notin R\}$.  The swap map
+  $\varphi(R) = (R \setminus \{y\}) \cup \{x\}$ increases $S_1$ by one,
+  decreases $W$ by one, and --- by the membership hypothesis on $x, y$ ---
+  leaves every $S_j$ with $j \ge 3$ unchanged.  Hence it maps the first
+  event bijectively onto $\{S_1 \le t,\, S_j < t \;\forall j \ge 3,\,
+  W = t-1,\, x \in R,\, y \notin R\}$, and the difference of failure
+  probabilities collapses to
+  $P(S_1 = t,\, W = t-1,\, S_j < t \;\forall j \ge 3,\, x \in R,\,
+  y \notin R) \ge 0$.  The claim follows by complementation.
+\end{proof}
+
+\begin{theorem}[Profile monotonicity for three tickets]
+  \label{thm:profile-monotone}
+  Fix any $(v,k,t)$ and $n = 3$.  If $M$ and $M + e_{ij}$ are both
+  feasible overlap vectors, then $F(M) \ge F(M + e_{ij})$: the
+  best-realisation value function is non-increasing in each coordinate.
+\end{theorem}
+
+\begin{proof}
+  Without loss of generality $(i,j) = (1,2)$.  Let
+  $\mathcal{A}' = (A_1, A_2, A_3)$ attain $F(M + e_{12})$, with Venn cells
+  $(c_{123}, c_{12}, c_{13}, c_{23}, c_1, c_2, c_3, c_0)$.  If there
+  exist $z \in A_1 \cap A_2$ and $w \notin A_1 \cup A_2$ with
+  $\ind{z \in A_3} = \ind{w \in A_3}$, then
+  $\mathcal{A} = (A_1, (A_2 \setminus \{z\}) \cup \{w\}, A_3)$ realises
+  $M$, and $\mathcal{A}'$ is recovered from $\mathcal{A}$ by a
+  pattern-preserving swap; Lemma~\ref{lem:pattern-swap} then gives
+  $F(M) \ge \Pwin(\mathcal{A}) \ge \Pwin(\mathcal{A}') = F(M + e_{12})$.
+  Such a pair $(z, w)$ exists whenever
+  $(c_{123} \ge 1 \wedge c_3 \ge 1)$ or
+  $(c_{12} \ge 1 \wedge c_0 \ge 1)$.  Suppose both fail, i.e.\
+  $(c_{123} = 0 \vee c_3 = 0) \wedge (c_{12} = 0 \vee c_0 = 0)$; since
+  $c_{123} + c_{12} = m_{12} + 1 \ge 1$ rules out
+  $c_{123} = c_{12} = 0$, three cases remain, and each contradicts the
+  feasibility of $M$:
+  \begin{itemize}
+    \item[(a)] $c_{123} = 0$ and $c_0 = 0$: then
+      $|A_1 \cup A_2 \cup A_3| = 3k - (m_{12}{+}1) - m_{13} - m_{23} = v$,
+      so any realisation of $M$ would have union of size at least
+      $3k - m_{12} - m_{13} - m_{23} = v + 1 > v$.
+    \item[(b)] $c_{12} = 0$ and $c_3 = 0$: then $c_{123} = m_{12}+1$ and
+      $c_3 = k - m_{13} - m_{23} + c_{123} = 0$ give
+      $m_{13} + m_{23} = k + m_{12} + 1$; any realisation of $M$ needs
+      triple intersection $c \ge m_{13} + m_{23} - k = m_{12} + 1$, yet
+      $c \le m_{12}$.
+    \item[(c)] $c_3 = 0$ and $c_0 = 0$: then
+      $[v] = A_1 \cup A_2 \cup A_3 = A_1 \cup A_2$, so
+      $v = 2k - (m_{12}+1)$, i.e.\ $m_{12} + 1 = 2k - v \le m^*$; but $M$
+      feasible requires $m_{12} \ge m^*$.
+  \end{itemize}
+  Hence when $M$ is feasible the descent always exists, proving the
+  theorem.
+\end{proof}
+
+\begin{remark}[Sharpness in both directions]
+  Theorem~\ref{thm:profile-monotone} is sharp in two senses.  First, the
+  maximum over realisations is essential: the realisation-wise statement
+  fails (Example~\ref{ex:counterexample}).  Second, the restriction to
+  $n = 3$ is essential, as the next example shows.  Exhaustive exact
+  verification for all $(v,k,t)$ with $v \le 13$ corroborates the theorem
+  (supplementary scripts).
+\end{remark}
+
+\begin{example}[Profile monotonicity fails for $n = 4$]
+  \label{ex:n4-counterexample}
+  Let $(v,k,t) = (9,3,2)$ (note $t > k/2$) and $n = 4$.  Exhaustive
+  enumeration of \emph{all} four-ticket collections shows that the best
+  realisation of the profile $(2,2,2,2,2,1)$ achieves
+  $F = 42/84$, while the \emph{sunflower} collection
+  \[
+    \{1,2,3\},\; \{1,2,4\},\; \{1,2,5\},\; \{1,2,6\}
+  \]
+  realises the coordinatewise-\emph{larger} profile $(2,2,2,2,2,2)$ with
+  $\Pwin = 43/84$.  Hence $F(2,2,2,2,2,1) < F(2,2,2,2,2,2)$: increasing a
+  pairwise overlap increases the best attainable winning probability.
+  Analogous violations occur for $(7,3,2)$, $(8,3,2)$ and $(9,4,3)$
+  (the latter also with $t > k/2$).  Best-realisation monotonicity is
+  therefore a genuinely low-$n$ phenomenon: it holds for $n \in \{2,3\}$
+  and fails from $n = 4$ onwards.
+\end{example}
+
+\begin{remark}[What survives for $n \ge 4$]
+  \label{rem:balance-principle}
+  Two structural facts persist for every $n$.  First,
+  Lemma~\ref{lem:pattern-swap} holds for all $n$: along any swap that
+  preserves the membership pattern in the remaining tickets, $\Pwin$ can
+  only decrease.  Second, the counterexamples do not disturb the
+  \emph{optima}: in every instance where we can certify the global
+  optimum --- the Lotofácil with $3 \le n \le 6$
+  (Theorems~\ref{thm:three-optimal} and~\ref{thm:certified-optima}), and the
+  families $(9,3,2)$ and $(9,4,3)$ with $n = 4$, whose global optima are
+  the profiles $(0,0,0,1,1,1)$ with $\Pwin = 65/84$ and $(1,1,1,1,1,2)$
+  with $\Pwin = 80/126$ --- the optimal collection attains the degree bound of
+  Proposition~\ref{prop:degree-bound} with the most balanced admissible
+  profile, exactly as the second-order surrogate $\sum_{i<j} g(m_{ij})$
+  predicts.  (The monotonicity violations occur in suboptimal regions of
+  the profile landscape, such as the sunflower family above.)  Whether a
+  global optimum always attains the degree bound with a
+  $\sum g$-minimising profile is, to our knowledge, open; we leave it as
+  the natural successor to the monotonicity question.
+\end{remark}
+
+\begin{remark}[Consequence for algorithm design]
+  \label{rem:objective}
+  Theorem~\ref{thm:three-optimal} shows that minimising the total overlap
+  $\Omega(\mathcal{A})$ is the wrong surrogate objective: all
+  $\Omega = 20$ profiles are tied under $\Omega$, yet their $\Pwin$ values
+  span $0.3010$--$0.3147$.  The correct second-order surrogate is
+  \[
+    G(\mathcal{A}) \;=\; \sum_{i<j} g(m_{ij}),
+  \]
+  which by inclusion--exclusion captures $1 - \Pwin$ up to higher-order
+  joint-win terms (nonnegative and typically much smaller).  Minimising
+  $G$ automatically produces balanced profiles.
+  Section~\ref{sec:algorithms} adopts this objective for the simulated
+  annealing stage, and Section~\ref{sec:empirical} quantifies the
+  resulting gains.
+\end{remark}
