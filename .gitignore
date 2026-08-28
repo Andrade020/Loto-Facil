@@ -208,3 +208,8 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Notas de trabalho locais (nao publicar)
+/deep-research-report.md
+/omega_star_insight.md
+/old_results_minoverlap/
