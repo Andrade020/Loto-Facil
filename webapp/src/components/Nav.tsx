@@ -10,11 +10,30 @@ interface Props {
 }
 
 export default function Nav({ route, navigate, theme, toggleTheme }: Props) {
+  const scrollToTool = () => {
+    const target = () =>
+      document.getElementById("tool")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (route === "home") {
+      target();
+    } else {
+      navigate("home");
+      // Aguarda o ToolPage montar apos a troca de rota antes de rolar.
+      setTimeout(target, 50);
+    }
+  };
+
   return (
     <div className="nav-wrap">
       <div className="navbar">
         <Logo onClick={() => navigate("home")} />
         <div className="nav-links">
+          <button
+            type="button"
+            className={`nav-link ${route === "home" ? "active" : ""}`}
+            onClick={scrollToTool}
+          >
+            Montar carteira
+          </button>
           <button
             type="button"
             className={`nav-link ${route === "como-funciona" ? "active" : ""}`}
